@@ -1,11 +1,13 @@
 {
-  "name": "portfolio-server-rest-api",
+  "name": "portfolio-backend",
   "version": "0.0.0",
+  "description": "portfolio back end",
   "private": true,
   "scripts": {
     "start": "nodemon ./bin/www.ts",
     "lint": "eslint . --ext .ts",
-    "lint-and-fix": "eslint . --ext .ts --fix"
+    "lint-and-fix": "eslint . --ext .ts --fix",
+    "build": "tsc"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
