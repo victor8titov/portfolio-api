@@ -2,7 +2,7 @@
 
 Part of the Portfolio project. This is the server side. Communication with the application occurs through the REST API.
 
-## istall
+## install
 
 ```bash
 
