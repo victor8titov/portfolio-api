@@ -1,0 +1,980 @@
+openapi: 3.0.0
+info:
+  title: Portfolio REST API
+  description: Api for backend project Portfolio
+  contact:
+    email: victor8titov@yandex.ru
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.0.1
+servers:
+- url: http://localhost:3000/api
+  description: dev server
+tags:
+  - name: homepage
+    description: Data for display on the main page
+  - name: projects
+    description: Data on projects who made the owner of the page
+  - name: skills
+    description: Skills which has the site owner
+  - name: time-stamps
+    description: Career history
+  - name: callback
+    description: Working with feedback form
+  - name: social-media
+    description: Management of links for communication with the site owner
+paths:
+  /homepage:
+    get:
+      tags:
+        - homepage
+      summary: Get homepage data
+      description: Data displayed on the main
+      parameters:
+        - in: query
+          name: language
+          description: Data to obtain a content group
+          schema:  
+            $ref: "#/components/schemas/Language"
+      responses:
+        200: 
+          description: Request completed successfully
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: 
+                      $ref: '#/components/schemas/HomePage'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4XX'
+        500:
+          $ref: '#/components/responses/5XX'
+    post:
+      tags:
+        - homepage
+      summary: Set homepage data
+      description: Setting the fields for the main page
+      requestBody:
+        description: Query body for data change
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HomePage'
+      responses:
+        200:
+          description: OK. Data saved 
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  language:
+                    type: string
+                  message:
+                    type: string
+                example:
+                  language: 'en'
+                  message: Data for home page successful saved
+        400:
+          $ref: '#/components/responses/4XX'
+        500:
+          $ref: '#/components/responses/5XX'
+    put:
+      tags:
+        - homepage
+      description: Update the data for the home page
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HomePage'
+      responses:
+        200:
+          description: OK. Data Update 
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  message:
+                    type: string
+                example:
+                  id: 3
+                  message: Data for home page successful updated
+        400:
+          $ref: '#/components/responses/4XX'
+        500:
+          $ref: '#/components/responses/5XX'
+
+  /projects:
+    get:
+      tags:
+        - projects
+      description: Get a list of all projects
+      requestBody:
+        description: Options to get a list
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pagination:
+                  $ref: "#/components/schemas/PaginationInRequest"
+                sort:
+                  $ref: "#/components/schemas/Sort"
+                language:
+                  $ref: "#/components/schemas/Language"
+      responses:
+        200:
+          description: Successfully receive list projects
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pagination:
+                    $ref: "#/components/schemas/PaginationInResponse"
+                  sorted: 
+                    $ref: "#/components/schemas/Sort"
+                  items:
+                    type: array
+                    items:
+                      allOf:
+                      - type: object
+                        required:
+                          - id
+                        properties:
+                          id:
+                            type: string
+                        example:
+                          id: 10
+                      - $ref: '#/components/schemas/Project'
+                  
+        400:
+          $ref: '#/components/responses/4XX'
+        500:
+          $ref: '#/components/responses/5XX'
+    post:
+      tags:
+        - projects
+      description: Create a new project
+      requestBody:
+        description: Data to create an essence project
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Project'
+      responses:
+        200:
+          description: Entity project has been successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                  message:
+                    type: string
+                example:
+                  id: 11
+                  message: Entity project has been successfully created
+        400:
+          $ref: "#/components/responses/4XX"
+        500:
+          $ref: "#/components/responses/5XX"
+
+  /projects/{id}:
+    get:
+      tags:
+        - projects
+      description: Get data on one project
+      requestBody:
+        description: Options to get a list
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LanguageObject'
+      responses:
+        200: 
+          description: Successfully receive data on one project
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    required:
+                      - id
+                    properties:
+                      id:
+                        type: string
+                    example:
+                      id: 10
+                  - $ref: '#/components/schemas/Project'
+        400:
+          $ref: "#/components/responses/4XX"
+        500:
+          $ref: "#/components/responses/5XX"
+    put:
+      tags:
+        - projects
+      description: Change the essence object completely
+      requestBody:
+        description: New parameters for project
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Project'
+      responses:
+        200:
+          description: Project change has passed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                  message: 
+                    type: string
+                example: 
+                  id: 11
+                  message: Project change has passed successfully
+        400:
+          $ref: "#/components/responses/4XX"
+        500:
+          $ref: "#/components/responses/5XX"
+    delete:
+      tags:
+        - projects
+      description: Delete the project
+      responses:
+        200:
+          description: Successful deleted the project
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                  message:
+                    type: string
+                example:
+                  id: 10
+                  message: Successful deleted the project
+        400:
+          $ref: "#/components/responses/4XX"
+        500:
+          $ref: "#/components/responses/5XX"
+
+  /skills:
+    get:
+      tags:
+        - skills
+      description: Get a list of skills
+      requestBody: 
+        description: Options to get a list
+        content:
+          application/json:
+            schema: 
+              allOf:
+                - type: object
+                  properties:
+                    pagination:
+                      $ref: "#/components/schemas/PaginationInRequest"
+                    sort:
+                      $ref: "#/components/schemas/Sort"
+                  example:
+                    pagination: 
+                      page: 1
+                      pageSize: 10
+                    sort: ['+name']
+                - $ref: "#/components/schemas/LanguageObject"
+      responses:
+        200:
+          description: successfully received a list of skills
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                properties:
+                  pagination:
+                    $ref: "#/components/schemas/PaginationInResponse"
+                  sorted:
+                    type: string
+                    example: '+name,-group'
+                  items:
+                    type: array
+                    items:
+                      allOf:
+                        - type: object
+                          required:
+                            - id
+                          properties:
+                            id: 
+                              type: string
+                          example: 
+                            id: 10
+                        - $ref: '#/components/schemas/Skill'
+        400:
+          $ref: "#/components/responses/4XX"
+        500:
+          $ref: "#/components/responses/5XX"
+    post: 
+      tags:
+        - skills  
+      description: Creating a new skill
+      requestBody:
+        description: Structure of new experience
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/Skill"
+      responses:
+        200:
+          description: Successful creating experience
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  id: 
+                    type: string
+                  message: 
+                    type: string
+                required:
+                  - id
+                example:
+                  id: 1
+                  message: Successful creating experience
+        400: 
+          $ref: "#/components/responses/4XX"
+        500:
+          $ref: "#/components/responses/5XX"
+  
+  /skills/{id}:
+    get:
+      tags:
+        - skills
+      description: Get one entities skill by ID
+      requestBody:
+        description: Options to get a skill
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/LanguageObject"
+      responses:
+        200:
+          description: Object experience received successfully 
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                    required:
+                      - id
+                    example: 
+                      id: 10
+                  - $ref: '#/components/schemas/Skill'                 
+        400:
+          $ref: "#/components/responses/4XX"
+        500:
+          $ref: "#/components/responses/5XX"
+    put:
+      tags:
+        - skills
+      description: Change one entities skill by ID
+      requestBody:
+        description: Modified object experience
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/Skill"
+      responses:
+        200:
+          description: Object skill received successfully 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  message: 
+                    type: string
+                required:
+                  - id
+                example: 
+                  id: 10
+                  message: Object skill received successfully
+        400:
+          $ref: "#/components/responses/4XX"
+        500:
+          $ref: "#/components/responses/5XX"
+    delete:
+      tags:
+        - skills
+      description: Delete one entities skill by ID
+      responses:
+        200:
+          description: Object skill deleted successfully 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deleted"
+        400:
+          $ref: "#/components/responses/4XX"
+        500:
+          $ref: "#/components/responses/5XX"
+
+  /time-stamps:
+    get:
+      tags:
+        - time-stamps
+      requestBody: 
+        description: Options to get a list
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pagination:
+                  $ref: "#/components/schemas/PaginationInRequest"
+                sort:
+                  $ref: "#/components/schemas/Sort"
+                language: 
+                  $ref: "#/components/schemas/Language"
+              
+      responses:
+        200:
+          description: Received a list of time points successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pagination:
+                    $ref: "#/components/schemas/PaginationInResponse"
+                  sorted:
+                    $ref: "#/components/schemas/Sort"
+                  items: 
+                    type: array
+                    items:
+                      allOf:
+                        - type: object
+                          required:
+                            - id
+                          properties:
+                            id: 
+                              type: string
+                          example:
+                            id: 10
+                        - $ref: "#/components/schemas/TimeStamps"
+        400: 
+          $ref: "#/components/responses/4XX"
+        500:
+          $ref: "#/components/responses/5XX"
+    post: 
+      tags:
+        - time-stamps
+      description: Create a time stamp
+      requestBody:
+        description: Time label fields
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/TimeStamps"
+      responses:
+        200:
+          description: The timestamp was created successfully
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/2XX"
+        400:
+          $ref: "#/components/responses/4XX"
+        500: 
+          $ref: "#/components/responses/5XX"
+        
+  /time-stamps/{id}:
+    get:
+      tags:
+        - time-stamps
+      description: Get one time stamps
+      requestBody:
+        description: Options for getting
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/LanguageObject"
+      responses:
+        200:
+          description: Successfully received the data on the time stamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimeStamps"
+        400:
+          $ref: "#/components/responses/4XX"
+        500: 
+          $ref: "#/components/responses/5XX"
+    put: 
+      tags:
+        - time-stamps
+      description: Change one the Time stamp
+      requestBody:
+        description: New Data for Time stamp
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/TimeStamps"
+      responses:
+        200:
+          description: Time stamp is changed successful
+          content:
+            application/json:
+              schema: 
+               $ref: "#/components/schemas/2XX"
+        400:
+          $ref: "#/components/responses/4XX"
+        500: 
+          $ref: "#/components/responses/5XX"    
+    delete:
+      tags:
+        - time-stamps
+      description: Delete one of Time stamp
+      responses:
+        200: 
+          description: Entity Time stamp deleted successful
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Deleted"
+        400:
+          $ref: "#/components/responses/4XX"
+        500: 
+          $ref: "#/components/responses/5XX"    
+
+  /callback:
+    get:
+      tags:
+        - callback
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+    
+  /social-media:
+    get:
+      tags:
+        - social-media
+      description: Get list social media entities
+      requestBody:
+        description: Options
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                language:
+                  $ref: "#/components/schemas/Language"
+                pagination:
+                  $ref: "#/components/schemas/PaginationInRequest"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pagination:
+                    $ref: "#/components/schemas/PaginationInResponse"
+                  items:  
+                    type: array
+                    items:
+                      allOf:
+                        - type: object
+                          required:
+                            - id
+                          properties:
+                            id: 
+                              type: string
+                          example:
+                            id: 10
+                        - $ref: "#/components/schemas/SocialMedia"
+        400:
+          $ref: "#/components/responses/4XX"
+        500: 
+          $ref: "#/components/responses/5XX"    
+    post: 
+      tags:
+        - social-media
+      description: Create new link social media
+      requestBody:
+        description: Data for new link
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/SocialMedia"
+      responses:
+        200: 
+          description: Entity Social Media created successful
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/2XX"    
+        400:
+          $ref: "#/components/responses/4XX"
+        500: 
+          $ref: "#/components/responses/5XX" 
+
+  /social-media/{id}:
+    get:
+      tags:
+        - social-media
+      description: Create one of social media
+      requestBody:
+        description: Options
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/LanguageObject"
+      responses:
+        200: 
+          description: Got Social media entity successful
+          content:
+            application/json:
+              schema: 
+                allOf:
+                  - type: object
+                    properties:
+                      id: 
+                        type: string
+                    required:
+                      - id
+                    example: 
+                      id: 10  
+                  - $ref: "#/components/schemas/SocialMedia"
+        400:
+          $ref: "#/components/responses/4XX"
+        500: 
+          $ref: "#/components/responses/5XX"
+    put: 
+      tags:
+        - social-media
+      description: Change one the social media
+      requestBody:
+        description: New Data for social media
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/SocialMedia"
+      responses:
+        200:
+          description: Social media is changed successful
+          content:
+            application/json:
+              schema: 
+               $ref: "#/components/schemas/2XX"
+        400:
+          $ref: "#/components/responses/4XX"
+        500: 
+          $ref: "#/components/responses/5XX"    
+    delete:
+      tags:
+        - social-media
+      description: Delete one of Social media
+      responses:
+        200: 
+          description: Entity Social media deleted successful
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Deleted"
+        400:
+          $ref: "#/components/responses/4XX"
+        500: 
+          $ref: "#/components/responses/5XX"       
+             
+components:
+  schemas:
+    Sort: 
+      type: array
+      items:
+        type: string
+      example:
+        ['+filed', '-field']
+
+    Language: 
+      type: string
+      enum:
+        - ru
+        - en
+      example: 
+        en
+
+    LanguageObject:
+      type: object
+      properties:
+        language:
+          $ref: "#/components/schemas/Language"
+      example: 
+        language: 'en'
+    
+    PaginationInRequest:
+      type: object
+      properties:
+        page: 
+          type: number
+          readOnly: true
+        pageSize:
+          type: number
+          readOnly: true
+      example:
+        page: 1
+        pageSize: 10
+    
+    PaginationInResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaginationInRequest"
+        - type: object
+          properties:
+            totalPages: 
+              type: number
+              readOnly: true
+          required:
+            - totalPages
+          example:
+            totalPages: 100
+    
+    HomePage:
+      allOf:
+        - $ref: "#/components/schemas/LanguageObject"
+        - type: object
+          properties:
+            title: 
+              type: string
+              readOnly: true
+            subtitle: 
+              type: string
+              readOnly: true
+            description:
+              type: string
+              readOnly: true
+            photo:
+              type: string
+              readOnly: true
+          example:
+            title: Text for title main page
+            subtitle: Text for subtitle main page
+            description: text description for main page
+            photo: /public/my-photo.png
+    
+    Project:
+      allOf:
+        - $ref: '#/components/schemas/LanguageObject'
+        - type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            type:
+              type: string
+            stack: 
+              type: array
+              items:
+                type: string
+            spendTime: 
+              type: string
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  miniature: 
+                    type: string
+                  fullSize: 
+                    type: string
+            linkToTemplate:
+              type: string
+          example: 
+            name: Organic
+            description: Таким образом дальнейшее ...
+            type: template
+            stack: ['html', 'css']
+            spendTime: 'time'
+            images: [{miniature: /public/photo.png,fullSize: /public/photo-full-size.png}]
+            linkToTemplate: http://template.dd
+            linkToWorkResource: http://someresource.dd
+    
+    Skill:
+      allOf:
+        - $ref: '#/components/schemas/LanguageObject'
+        - type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            group: 
+              type: string
+            icon:
+              type: string
+            level:
+              type: number
+              maximum: 10
+              minimum: 0
+          example:
+            name: css3
+            description: I know this technology ...
+            group: styles
+            icon: url icon
+            level: 5
+    
+    TimeStamps:
+      allOf:
+        - $ref: "#/components/schemas/LanguageObject"
+        - type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            link: 
+              type: string
+            stack:
+              type: array
+              items: 
+                type: string
+            dateStart:
+              type: string  
+              format: date
+            dateEnd:
+              type: string
+              format: date
+          example:
+            name: Компания ООО Петрушка
+            description: Описание как хорошо было в компании
+            link: http://example.com
+            stack: ['css', 'html5', 'javascript']
+            dateStart: 2021-10-10
+            dateEnd: 2022-10-10
+    
+    SocialMedia: 
+      allOf:
+        - $ref: "#/components/schemas/LanguageObject"
+        - type: object
+          properties:
+            name: 
+              type: string
+            link:
+              type: string
+            icon: 
+              type: string
+          required:
+            - link
+          example:
+            name: Github
+            link: http://github.com/victor8titov
+            icon: http://someIcon.com/github.png
+
+    Deleted:
+      type: object
+      properties:
+        id:
+          type: string
+        message: 
+          type: string
+      required:
+        - id
+      example: 
+        id: 10
+        message: Object deleted successfully
+
+    2XX:
+      type: object
+      properties:
+        id: 
+          type: string
+        message: 
+          type: string
+      required:
+        - id
+      example:
+        id: 1
+        message: Successful created
+
+    4XX:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          readOnly: true
+        source:
+          type: string
+          readOnly: true
+        type: 
+          type: string  
+          readOnly: true
+      example:
+        source: title
+        type: TYPE_OF_ERROR 
+        message: Something is going wrong
+    
+    5XX:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          readOnly: true
+      example:
+        message: Sorry internal server error
+    
+  responses:
+    4XX:
+      description: Client Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/4XX'
+    5XX:
+      description: Internal Server Error
+      content: 
+        application/json:
+          schema:
+            $ref: '#/components/schemas/5XX'
+      
+    
+    
+  
