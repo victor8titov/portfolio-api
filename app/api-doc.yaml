@@ -12,6 +12,8 @@ servers:
 - url: http://localhost:3000/api
   description: dev server
 tags:
+  - name: auth
+    description: Endpoint is for authorization Users
   - name: homepage
     description: Data for display on the main page
   - name: projects
@@ -25,6 +27,111 @@ tags:
   - name: social-media
     description: Management of links for communication with the site owner
 paths:
+  /auth/login:
+    get:
+      tags:
+        - auth
+      summary: Logs user into the system
+      parameters:
+        - name: username
+          in: query
+          description: The user name for login
+          required: true
+          schema:
+              type: string
+        - name: password
+          in: query
+          description: The password for login in clear text
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JwtToken"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4XX'
+        500:
+          $ref: '#/components/responses/5XX'
+
+  /auth/logout:
+    get:
+      tags:
+      - auth
+      summary: Logs out current logged in user session
+      parameters:
+        - in: query
+          name: username
+          description: User's name for logout
+          schema:
+            type: string
+            example: admin
+      responses:
+        200:
+            description: successful operation
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                    username:
+                      type: string
+                  example:
+                    username: admin
+                    message: The user came out of the system
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4XX'
+        500:
+          $ref: '#/components/responses/5XX'
+
+  /auth/refresh-token:
+    post:
+      tags:
+      - auth
+      summary: Create new token
+      description: Create new token without login
+      requestBody:
+        description: These are needed to obtain tokens
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken: 
+                  type: string
+                  required:
+                    - refreshToken
+              example:
+                refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+      responses:
+        200:
+            description: successful operation
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/JwtToken"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4XX'
+        500:
+          $ref: '#/components/responses/5XX'
+      
   /homepage:
     get:
       tags:
@@ -57,11 +164,15 @@ paths:
                 $ref: '#/components/schemas/4XX'
         500:
           $ref: '#/components/responses/5XX'
+      
+      
     post:
       tags:
         - homepage
       summary: Set homepage data
       description: Setting the fields for the main page
+      security:
+        - BearerAuth: []
       requestBody:
         description: Query body for data change
         content:
@@ -85,12 +196,16 @@ paths:
                   message: Data for home page successful saved
         400:
           $ref: '#/components/responses/4XX'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
         500:
           $ref: '#/components/responses/5XX'
     put:
       tags:
         - homepage
       description: Update the data for the home page
+      security:
+        - BearerAuth: []
       requestBody:
         content:
           application/json:
@@ -113,6 +228,8 @@ paths:
                   message: Data for home page successful updated
         400:
           $ref: '#/components/responses/4XX'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
         500:
           $ref: '#/components/responses/5XX'
 
@@ -723,6 +840,12 @@ paths:
           $ref: "#/components/responses/5XX"       
              
 components:
+  securitySchemes:
+      BearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+
   schemas:
     Sort: 
       type: array
@@ -905,6 +1028,20 @@ components:
             link: http://github.com/victor8titov
             icon: http://someIcon.com/github.png
 
+    JwtToken:
+      type: object
+      properties:
+        token:  
+          type: string
+        refreshToken:
+          type: string 
+      required:
+        - token
+        - refreshToken
+      example: 
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+    
     Deleted:
       type: object
       properties:
@@ -961,6 +1098,7 @@ components:
       example:
         message: Sorry internal server error
     
+    
   responses:
     4XX:
       description: Client Error
@@ -968,13 +1106,33 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/4XX'
+    403:
+      description: forbidden
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                readOnly: true
+            example:
+              message: Forbidden
     5XX:
       description: Internal Server Error
       content: 
         application/json:
           schema:
             $ref: '#/components/schemas/5XX'
-      
+    
+    UnauthorizedError:
+      description: User unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/4XX'    
     
     
   

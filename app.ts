@@ -7,6 +7,8 @@ import logger from 'morgan'
 import { apiRouters } from './app/routes'
 import swaggerUi from 'swagger-ui-express'
 import YAML from 'yamljs'
+import passport from 'passport'
+import './app/config/passport-jwt-strategy'
 
 const swaggerDocument = YAML.load('./app/api-doc.yaml')
 
@@ -17,6 +19,8 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
+
+app.use(passport.initialize())
 
 app.use('/api', apiRouters)
 
@@ -33,7 +37,7 @@ app.use(function (req, res, next) {
 })
 
 // error handler
-app.use(function (err: any, req: express.Request, res: express.Response) {
+app.use(function (err: any, req: express.Request, res: express.Response, next: any) {
   // set locals, only providing error in development
   res.locals.message = err.message
   res.locals.error = req.app.get('env') === 'development' ? err : {}
@@ -41,7 +45,7 @@ app.use(function (err: any, req: express.Request, res: express.Response) {
   // render the error page
   res.status(err.status || 500)
   res.json({
-    message: err.message || 'Error without description. Sorry that I can not help you.'
+    message: err.message || 'Internal Server Error'
   })
 })
 
