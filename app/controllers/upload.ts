@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from 'express'
 import { Image, TemplateImage, TypeErrors } from '../../bin/database/types'
 import createError from 'http-errors'
-import { pathForImages } from '../config/base'
 import sharp from 'sharp'
 import { createImages, getTemplatesImage } from '../models/image'
 import { generateId } from '../../bin/common/generate-id'
+import { pathForImages } from '../../bin/common/paths'
 
 // TODO разрулить вопрос с типизацией тяниться с предыдушего middleware
 export async function uploadImage (req: any, res: Response, next: NextFunction) {

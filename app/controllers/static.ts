@@ -1,8 +1,8 @@
 import express, { NextFunction } from 'express'
 import createError from 'http-errors'
-import { pathForImages } from '../config/base'
 import path from 'path'
 import { getMimeType } from '../../bin/common/mime-types'
+import { pathForImages } from '../../bin/common/paths'
 import { readFile } from '../../bin/common/read-file'
 
 export async function getImage (req: express.Request, res: express.Response, next: NextFunction) {

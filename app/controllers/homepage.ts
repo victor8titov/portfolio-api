@@ -1,6 +1,5 @@
 import express, { NextFunction } from 'express'
 import { checkLanguageField } from '../../bin/common/check-languages'
-import { sendJSON } from '../../bin/common/JSON-responses'
 import { Language, TypeErrors } from '../../bin/database/types'
 import { createHomePage, getHomePage, updateHomePage } from '../models/homepage'
 import createError from 'http-errors'
@@ -18,7 +17,7 @@ export async function read (req: express.Request, res: express.Response, next: N
 
     const _data = await getHomePage({ language })
 
-    sendJSON(res, 200, { items: !_data ? [] : _data })
+    res.status(200).json({ items: !_data ? [] : _data })
   } catch (e) {
     next(createError(500, 'Error processing data for the home page.'))
   }
@@ -51,7 +50,7 @@ export async function create (req: express.Request, res: express.Response, next:
     }
 
     const _dataAfterSave = await createHomePage({ language, title, description, subtitle })
-    sendJSON(res, 200, { language: _dataAfterSave.language, message: 'The main page has created successfully.' })
+    res.status(200).json({ language: _dataAfterSave.language, message: 'The main page has created successfully.' })
   } catch (e) {
     next(createError(500, 'Error processing data for the home page.'))
   }
@@ -76,7 +75,7 @@ export async function update (req: express.Request, res: express.Response, next:
     }
 
     const _dataAfterUpdate = await updateHomePage({ language, title, description, subtitle })
-    sendJSON(res, 200, { language: _dataAfterUpdate.language, message: 'The main page has updated successfully.' })
+    res.status(200).json({ language: _dataAfterUpdate.language, message: 'The main page has updated successfully.' })
   } catch (e) {
     next(createError(500, 'Error processing data for the home page.'))
   }

@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express'
-import { sendJSON } from '../../bin/common/JSON-responses'
 import { TypeErrors } from '../../bin/database/types'
 import createError from 'http-errors'
 import { deleteRefreshTokenByUserName, generateRefreshToken, generateToken, getPayloadToken, getRefreshToken, validPassword, validToken } from '../models/auth'
@@ -37,7 +36,7 @@ export async function login (req: Request, res: Response, next: NextFunction) {
 
     const token = await generateToken(_user)
     const refreshToken = await generateRefreshToken(_user)
-    sendJSON(res, 200, { token, refreshToken })
+    res.status(200).json({ token, refreshToken })
   } catch (e: any) {
     next(createError(500, e.message || 'Error processing data for login.'))
   }
@@ -59,7 +58,7 @@ export async function logout (req: Request, res: Response, next: NextFunction) {
     }
 
     await deleteRefreshTokenByUserName(username)
-    sendJSON(res, 200, {
+    res.status(200).json({
       username: username,
       message: 'Logout was made successful'
     })
@@ -98,7 +97,7 @@ export async function refreshToken (req: Request, res: Response, next: NextFunct
 
     const newToken = await generateToken(_user)
     const newRefreshToken = await generateRefreshToken(_user)
-    sendJSON(res, 200, { token: newToken, refreshToken: newRefreshToken })
+    res.status(200).json({ token: newToken, refreshToken: newRefreshToken })
   } catch (e: any) {
     next(createError(500, e.message || 'Error processing data'))
   }

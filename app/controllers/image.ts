@@ -2,8 +2,8 @@ import express, { NextFunction } from 'express'
 import fs from 'fs'
 import createError from 'http-errors'
 import { deleteImages, getImages } from '../models/image'
-import { pathForImages, urlForStaticImages } from '../config/base'
 import path from 'path'
+import { pathForImages, urlForStaticImages } from '../../bin/common/paths'
 
 export async function getImage (req: express.Request, res: express.Response, next: NextFunction) {
   try {
