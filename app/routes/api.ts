@@ -3,10 +3,10 @@ import * as homepage from '../controllers/homepage'
 import * as authController from '../controllers/auth'
 import * as uploadControllers from '../controllers/upload'
 import * as imageControllers from '../controllers/image'
-import { auth } from '../middleware/auth'
+import { auth } from '../../bin/middleware/auth'
 import createError from 'http-errors'
-import { uploadImage } from '../middleware/upload'
-import { handlerError } from '../middleware/handler-error'
+import { uploadImage } from '../../bin/middleware/upload'
+import { handlerError } from '../../bin/middleware/handler-error'
 
 const router = express.Router()
 

@@ -8,9 +8,9 @@ import { routersForApi } from './app/routes/api'
 import swaggerUi from 'swagger-ui-express'
 import YAML from 'yamljs'
 import passport from 'passport'
-import './app/config/passport-jwt-strategy'
+import './bin/config/passport-jwt-strategy'
 import { routersForStatic } from './app/routes/static'
-import { handlerError } from './app/middleware/handler-error'
+import { handlerError } from './bin/middleware/handler-error'
 
 const swaggerDocument = YAML.load('./app/api-doc.yaml')
 

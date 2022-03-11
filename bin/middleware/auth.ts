@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import passport from 'passport'
-import { TypeErrors, User } from '../../bin/database/types'
+import { TypeErrors, User } from '../database/types'
 import createError from 'http-errors'
 
 export function auth (req: Request, res: Response, next: NextFunction) {
