@@ -4,11 +4,13 @@ import express from 'express'
 import path from 'path'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
-import { apiRouters } from './app/routes'
+import { routersForApi } from './app/routes/api'
 import swaggerUi from 'swagger-ui-express'
 import YAML from 'yamljs'
 import passport from 'passport'
 import './app/config/passport-jwt-strategy'
+import { routersForStatic } from './app/routes/static'
+import { handlerError } from './app/middleware/handler-error'
 
 const swaggerDocument = YAML.load('./app/api-doc.yaml')
 
@@ -22,31 +24,19 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 app.use(passport.initialize())
 
-app.use('/api', apiRouters)
+app.use('/api', routersForApi)
+app.use('/public', routersForStatic)
 
-// OpenAPI UI
 app.use(
   '/api-documentation',
   swaggerUi.serve,
   swaggerUi.setup(swaggerDocument)
 )
 
-// catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404))
 })
 
-// error handler
-app.use(function (err: any, req: express.Request, res: express.Response, next: any) {
-  // set locals, only providing error in development
-  res.locals.message = err.message
-  res.locals.error = req.app.get('env') === 'development' ? err : {}
-
-  // render the error page
-  res.status(err.status || 500)
-  res.json({
-    message: err.message || 'Internal Server Error'
-  })
-})
+app.use(handlerError)
 
 export default app

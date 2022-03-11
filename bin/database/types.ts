@@ -19,7 +19,9 @@ export enum TypeErrors {
   INVALID_TYPE = 'Invalid data type',
   EMPTY_FILED = 'Empty field',
   ALREADY_EXIST = 'Already exist',
-  AUTHENTICATION = 'Authentication'
+  AUTHENTICATION = 'Authentication',
+  EXTENTSION = 'Extension not supported',
+  INCORRECT_VALUE = 'Incorrect value'
 }
 
 export type User = {
@@ -43,6 +45,22 @@ export type RefreshToken = {
   readonly tokenId: string
   readonly userId: string
   readonly expiry: string
+}
+
+export type TemplateImage = {
+  readonly id: string
+  readonly name: string | undefined | null
+  readonly suffix: string
+  readonly width: number
+  readonly height: number | null
+}
+
+export type Image = {
+  id: string
+  name: string
+  description: string | null
+  width: number | null
+  height: number | null
 }
 
 // export type HomePagePostgreSQL = {

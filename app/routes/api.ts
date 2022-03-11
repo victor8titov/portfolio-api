@@ -1,9 +1,12 @@
 import express, { Request, Response, NextFunction } from 'express'
 import * as homepage from '../controllers/homepage'
 import * as authController from '../controllers/auth'
+import * as uploadControllers from '../controllers/upload'
+import * as imageControllers from '../controllers/image'
 import { auth } from '../middleware/auth'
-import createError, { HttpError } from 'http-errors'
-import { sendJSON } from '../../bin/common/JSON-responses'
+import createError from 'http-errors'
+import { uploadImage } from '../middleware/upload'
+import { handlerError } from '../middleware/handler-error'
 
 const router = express.Router()
 
@@ -15,19 +18,15 @@ router.get('/homepage', homepage.read)
 router.post('/homepage', auth, homepage.create)
 router.put('/homepage', auth, homepage.update)
 
-// catch 404 and forward to error handler
+router.post('/upload/image', auth, uploadImage, uploadControllers.uploadImage)
+
+router.get('/image/:fileId', auth, imageControllers.getImage)
+router.delete('/image/:fileId', auth, imageControllers.deleteImage)
+
 router.use(function (req: Request, res: Response, next: NextFunction) {
   next(createError(404))
 })
 
 router.use(handlerError)
 
-function handlerError (err: HttpError, req: Request, res: Response, next: NextFunction) {
-  sendJSON(res, err.status || 500, {
-    ...(err.source ? { source: err.source } : {}),
-    ...(err.type ? { type: err.type } : {}),
-    message: err.message || 'Internal Server Error'
-  })
-}
-
-export { router as apiRouters }
+export { router as routersForApi }

@@ -21,7 +21,3 @@ export async function getUser (options: Options): Promise<User | undefined> {
     return _db.getUserByName(userName)
   }
 }
-
-// export async function createUser() {}
-
-// export async function updateUser() {}

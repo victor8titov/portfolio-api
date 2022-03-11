@@ -14,7 +14,7 @@ export class AuthData extends DatabaseMain implements AuthDataInterface {
       await this._db.connect()
 
       const _answer = await this._db.query(`
-          SELECT * FROM refreshtokens WHERE 
+          SELECT * FROM refresh_tokens WHERE 
           token_id = '${tokenId}';
         `)
       const _length = _answer.rows.length
@@ -36,7 +36,7 @@ export class AuthData extends DatabaseMain implements AuthDataInterface {
       await this._db.connect()
 
       const _answer = await this._db.query(`
-          INSERT INTO refreshtokens (token_id, user_id, expiry_date)
+          INSERT INTO refresh_tokens (token_id, user_id, expiry_date)
           VALUES ('${token.tokenId}', '${token.userId}', '${token.expiry}');
         `)
 
@@ -54,12 +54,12 @@ export class AuthData extends DatabaseMain implements AuthDataInterface {
       await this._db.connect()
 
       await this._db.query(`
-          DELETE FROM refreshtokens WHERE 
+          DELETE FROM refresh_tokens WHERE 
           user_id = '${token.userId}';
         `)
 
       await this._db.query(`
-      INSERT INTO refreshtokens (token_id, user_id, expiry_date)
+      INSERT INTO refresh_tokens (token_id, user_id, expiry_date)
       VALUES ('${token.tokenId}', '${token.userId}', '${token.expiry}');
         `)
     } catch (e: any) {
@@ -75,7 +75,7 @@ export class AuthData extends DatabaseMain implements AuthDataInterface {
       await this._db.connect()
 
       const _answer = await this._db.query(`
-          DELETE FROM refreshtokens WHERE 
+          DELETE FROM refresh_tokens WHERE 
           user_id = (
             SELECT user_id FROM users WHERE name = '${userName}'
           );

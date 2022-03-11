@@ -59,10 +59,10 @@ async function initUsersTable () {
 
 async function initRefreshTokenTable () {
   try {
-    await db.query('DROP TABLE IF EXISTS refreshTokens;')
+    await db.query('DROP TABLE IF EXISTS refresh_tokens;')
 
     await db.query(`
-      CREATE TABLE refreshTokens (
+      CREATE TABLE refresh_tokens (
         token_id text NOT NULL,
         user_id integer NOT NULL,
         expiry_date timestamp NOT NULL,
@@ -73,9 +73,60 @@ async function initRefreshTokenTable () {
       );
     `)
 
-    console.log('added refreshToken table')
+    console.log('added refresh Token table')
   } catch (e) {
     console.log(e)
+  }
+}
+
+async function initTemplatesImage () {
+  try {
+    await db.query('DROP TABLE IF EXISTS templates_image')
+
+    await db.query(`
+      CREATE TABLE templates_image (
+        template_image_id serial NOT NULL,
+        name VARCHAR(20) NOT NULL,
+        suffix VARCHAR(8) NOT NULL,
+        width SMALLINT NOT NULL,
+        height SMALLINT,
+        PRIMARY KEY (template_image_id),
+        UNIQUE (width, height)
+      );
+    `)
+
+    await db.query(`
+      INSERT INTO templates_image (name, suffix, width, height)
+        VALUES ('for the tablet', 'mid', 800, null),
+          ('for the phone', 'small', 300, 300);
+    `)
+
+    console.log('added templates_image table successful')
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+async function initImagesTable () {
+  try {
+    await db.query('DROP TABLE IF EXISTS images')
+
+    await db.query(`
+      CREATE TABLE images (
+        id serial NOT NULL,
+        image_id VARCHAR(10) NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT,
+        width SMALLINT,
+        height SMALLINT,
+        PRIMARY KEY (id),
+        UNIQUE (image_id, name)  
+      );
+    `)
+
+    console.log('added images table successful')
+  } catch (e) {
+    console.error(e)
   }
 }
 
@@ -83,6 +134,8 @@ async function initRefreshTokenTable () {
   await initUsersTable()
   await initRefreshTokenTable()
   await initHomePageTable()
+  await initTemplatesImage()
+  await initImagesTable()
   await db.end()
   console.log('closed postgres')
 })()

@@ -26,6 +26,10 @@ tags:
     description: Working with feedback form
   - name: social-media
     description: Management of links for communication with the site owner
+  - name: upload
+    description: Upload file
+  - name: image
+    description: Get information about image and manipulate this image
 paths:
   /auth/login:
     get:
@@ -164,7 +168,6 @@ paths:
                 $ref: '#/components/schemas/4XX'
         500:
           $ref: '#/components/responses/5XX'
-      
       
     post:
       tags:
@@ -838,7 +841,91 @@ paths:
           $ref: "#/components/responses/4XX"
         500: 
           $ref: "#/components/responses/5XX"       
-             
+
+  /upload/image:
+    post:
+      tags:
+        - upload
+      description: upload image
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: binary data
+        content: 
+          multipart/form-data: 
+            schema:            
+              type: object
+              properties:      
+                name:     
+                  type: string
+                description:  
+                  type: string
+                file:
+                  type: string
+                  format: binary
+      responses:
+        200: 
+          description: File successfully upload to server
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Image'
+        400:
+          $ref: "#/components/responses/4XX"
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        500:
+          $ref: "#/components/responses/5XX"
+
+  /image/:fileId:
+    get:
+      tags:
+        - image
+      description: Get information about uploading image
+      security:
+        - BearerAuth: []
+      responses:
+        200: 
+          description: Successfully receive data about image
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Image"
+
+        400:
+          $ref: "#/components/responses/4XX"
+        500:
+          $ref: "#/components/responses/5XX"
+    delete: 
+      tags:
+        - image
+      description: Delete image from server
+      security:
+        - BearerAuth: []
+      responses:
+        200: 
+          description: Successfully deleted image
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: 
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - id
+                example:
+                  id: klj009lkc
+                  message: successful deleted
+        400:
+          $ref: "#/components/responses/4XX"
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        500:
+          $ref: "#/components/responses/5XX"
+
 components:
   securitySchemes:
       BearerAuth:
@@ -1042,6 +1129,43 @@ components:
         token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
         refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
     
+    ImageEntity:
+      type: object
+      properties:
+        url: 
+          type: string
+        width: 
+          type: string
+        height:
+          type: string
+        name: 
+          type: string
+        description: 
+          type: string
+      required:
+        - url
+        - name
+        - description
+      example:
+        name: pic-500x500-mid.png
+        width: 500
+        height: 500
+        description: about this photo text
+        url: public/images/pic-500x500-mid.png
+    
+    Image:
+      type: object
+      properties:
+        id: 
+          type: string
+        items: 
+          type: array
+          items:
+            $ref: "#/components/schemas/ImageEntity"
+      required:
+        - id
+        - items
+    
     Deleted:
       type: object
       properties:
@@ -1106,6 +1230,7 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/4XX'
+    
     403:
       description: forbidden
       content:
@@ -1120,6 +1245,7 @@ components:
                 readOnly: true
             example:
               message: Forbidden
+    
     5XX:
       description: Internal Server Error
       content: 
