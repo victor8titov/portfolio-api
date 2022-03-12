@@ -12,6 +12,7 @@ CREATE TABLE homepage (
   title text,
   subtitle text,
   description text,
+  image VARCHAR(10),
   CHECK (language IN ('en', 'ru')),
   PRIMARY KEY (language),
 );

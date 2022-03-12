@@ -2,24 +2,24 @@ import { HomePage, Language } from './types'
 import { DatabaseMain } from '.'
 
 export interface HomePageDataInterface {
-  getHomePage(language?: Language): Promise<HomePage[] | undefined>
-  createHomePage(homepage: HomePage): Promise<HomePage>
-  updateHomePage(homepage: HomePage): Promise<HomePage>
+  getHomePage(language?: Language): Promise<Omit<HomePage, 'imageId' | 'images'>[] | undefined>
+  createHomePage(homepage: Omit<HomePage, 'images' | 'image'>): Promise<void>
+  updateHomePage(homepage: Omit<HomePage, 'images' | 'image'>): Promise<void>
 }
 
 export class HomePageData extends DatabaseMain implements HomePageDataInterface {
-  async getHomePage (language?: Language): Promise<HomePage[] | undefined> {
+  async getHomePage (language?: Language): Promise<Omit<HomePage, 'imageId' | 'images'>[] | undefined> {
     try {
       await this._db.connect()
-      let result
+      let _homepageRows
 
       if (language) {
-        result = await this._db.query<HomePage>(`SELECT * FROM homepage WHERE language = '${language}'`)
+        _homepageRows = await this._db.query<Omit<HomePage, 'imageId' | 'images'>>(`SELECT * FROM homepage WHERE language = '${language}'`)
       } else {
-        result = await this._db.query<HomePage>('SELECT * FROM homepage')
+        _homepageRows = await this._db.query<Omit<HomePage, 'imageId' | 'images'>>('SELECT * FROM homepage')
       }
 
-      return result ? result.rows : undefined
+      return _homepageRows ? _homepageRows.rows : undefined
     } catch (e: any) {
       console.error(e)
       throw new Error(e.message)
@@ -28,18 +28,17 @@ export class HomePageData extends DatabaseMain implements HomePageDataInterface 
     }
   }
 
-  async createHomePage (homepage: HomePage): Promise<HomePage> {
+  async createHomePage (homepage: Omit<HomePage, 'images' | 'image'>): Promise<void> {
     try {
-      const { language, title, subtitle = null, description } = homepage
+      const { language, title = '', subtitle = '', description = '', imageId = '' } = homepage
 
       await this._db.connect()
 
       if (language && title && description) {
         await this._db.query(`
-          INSERT INTO homepage (language, title, subtitle, description)
-            VALUES ('${language}', '${title}', '${subtitle}', '${description}');
+          INSERT INTO homepage (language, title, subtitle, description, image)
+            VALUES ('${language}', '${title}', '${subtitle}', '${description}', '${imageId}');
           `)
-        return { language }
       } else {
         throw new Error('There is no field Title or Description or language')
       }
@@ -51,9 +50,9 @@ export class HomePageData extends DatabaseMain implements HomePageDataInterface 
     }
   }
 
-  async updateHomePage (homepage: HomePage): Promise<HomePage> {
+  async updateHomePage (homepage: Omit<HomePage, 'images' | 'image'>): Promise<void> {
     try {
-      const { language, title, subtitle = null, description } = homepage
+      const { language, title = '', subtitle = '', description = '', imageId = '' } = homepage
 
       await this._db.connect()
 
@@ -62,10 +61,10 @@ export class HomePageData extends DatabaseMain implements HomePageDataInterface 
           UPDATE homepage 
             SET title = '${title}',
                 subtitle = '${subtitle}',
-                description = '${description}'
+                description = '${description}',
+                image = '${imageId}'
             WHERE language = '${language}';
           `)
-        return { language }
       } else {
         throw new Error('There is no field Title or Description or language')
       }

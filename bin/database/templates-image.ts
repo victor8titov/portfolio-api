@@ -9,15 +9,9 @@ export class TemplatesImage extends DatabaseMain implements TemplatesImagesInter
   async getTemplatesImages (): Promise<TemplateImage[]> {
     try {
       await this._db.connect()
-      const _templates = await this._db.query('SELECT * FROM templates_image;')
+      const _templates = await this._db.query<TemplateImage>('SELECT * FROM templates_image;')
 
-      return _templates.rows.map<TemplateImage>(item => ({
-        id: item.template_image_id,
-        name: item.name,
-        width: item.width,
-        height: item.height,
-        suffix: item.suffix
-      }))
+      return _templates.rows
     } catch (e: any) {
       console.error(e)
       throw new Error(e.message)

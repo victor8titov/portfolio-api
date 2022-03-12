@@ -1,8 +1,11 @@
 import express, { NextFunction } from 'express'
 import { checkLanguageField } from '../../bin/common/check-languages'
-import { Language, TypeErrors } from '../../bin/database/types'
+import { HomePage, Language, TypeErrors } from '../../bin/database/types'
 import { createHomePage, getHomePage, updateHomePage } from '../models/homepage'
 import createError from 'http-errors'
+import { getImages } from '../models/image'
+import path from 'path'
+import { urlForStaticImages } from '../../bin/common/paths'
 
 export async function read (req: express.Request, res: express.Response, next: NextFunction) {
   try {
@@ -15,9 +18,42 @@ export async function read (req: express.Request, res: express.Response, next: N
       }))
     }
 
-    const _data = await getHomePage({ language })
+    const _homepageRows = (await getHomePage({ language })) || []
 
-    res.status(200).json({ items: !_data ? [] : _data })
+    const _data: Omit<HomePage, 'imageId' | 'image'>[] = []
+
+    for (const row of _homepageRows) {
+      const _images: any | undefined = undefined
+
+      if (row.image) {
+        const _imagesRows = await getImages(row.image)
+        if (_imagesRows.length) {
+          _images.id = row.image
+          _images.items = []
+
+          _imagesRows.forEach(item => {
+            _images.items.push({
+              name: item.name,
+              description: item.description,
+              width: item.width,
+              height: item.height,
+              templateName: item.templateName,
+              url: path.resolve(urlForStaticImages, item.name)
+            })
+          })
+        }
+      }
+
+      _data.push({
+        language: row.language,
+        title: row.title,
+        subtitle: row.subtitle,
+        description: row.description,
+        images: _images || null
+      })
+    }
+
+    res.status(200).json({ items: _data })
   } catch (e) {
     next(createError(500, 'Error processing data for the home page.'))
   }
@@ -25,7 +61,7 @@ export async function read (req: express.Request, res: express.Response, next: N
 
 export async function create (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const { language, title, description, subtitle } = req.body
+    const { language, title, description, subtitle, imageId } = req.body
 
     if (!language || !checkLanguageField(language)) {
       return next(createError(400, `Wrong language type. Can be ${Object.values(Language).join(', ')}`, {
@@ -49,8 +85,20 @@ export async function create (req: express.Request, res: express.Response, next:
       }))
     }
 
-    const _dataAfterSave = await createHomePage({ language, title, description, subtitle })
-    res.status(200).json({ language: _dataAfterSave.language, message: 'The main page has created successfully.' })
+    if (imageId) {
+      const _images = await getImages(imageId)
+
+      if (!_images.length) {
+        return next(createError(400, 'There is no image with such an ID', {
+          source: 'imageId',
+          type: TypeErrors.NO_EXIST
+        }))
+      }
+    }
+
+    await createHomePage({ language, title, description, subtitle, imageId })
+
+    res.status(200).json({ language, message: 'The main page has created successfully.' })
   } catch (e) {
     next(createError(500, 'Error processing data for the home page.'))
   }
@@ -58,7 +106,7 @@ export async function create (req: express.Request, res: express.Response, next:
 
 export async function update (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const { language, title, description, subtitle } = req.body
+    const { language, title, description, subtitle, imageId } = req.body
 
     if (!language || !checkLanguageField(language)) {
       return next(createError(400, `Wrong language type. Can be ${Object.values(Language).join(', ')}`, {
@@ -74,8 +122,19 @@ export async function update (req: express.Request, res: express.Response, next:
       }))
     }
 
-    const _dataAfterUpdate = await updateHomePage({ language, title, description, subtitle })
-    res.status(200).json({ language: _dataAfterUpdate.language, message: 'The main page has updated successfully.' })
+    if (imageId) {
+      const _images = await getImages(imageId)
+
+      if (!_images.length) {
+        return next(createError(400, 'There is no image with such an ID', {
+          source: 'imageId',
+          type: TypeErrors.NO_EXIST
+        }))
+      }
+    }
+
+    await updateHomePage({ language, title, description, subtitle, imageId })
+    res.status(200).json({ language, message: 'The main page has updated successfully.' })
   } catch (e) {
     next(createError(500, 'Error processing data for the home page.'))
   }

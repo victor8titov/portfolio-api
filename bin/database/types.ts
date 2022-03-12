@@ -8,17 +8,11 @@ export type OptionsRequest = {
   language?: Language
 }
 
-export type HomePage = {
-  readonly language?: Language
-  readonly title?: string
-  readonly subtitle?: string
-  readonly description?: string
-}
-
 export enum TypeErrors {
   INVALID_TYPE = 'Invalid data type',
   EMPTY_FILED = 'Empty field',
   ALREADY_EXIST = 'Already exist',
+  NO_EXIST = 'No exist',
   AUTHENTICATION = 'Authentication',
   EXTENTSION = 'Extension not supported',
   INCORRECT_VALUE = 'Incorrect value'
@@ -48,25 +42,27 @@ export type RefreshToken = {
 }
 
 export type TemplateImage = {
-  readonly id: string
-  readonly name: string | undefined | null
-  readonly suffix: string
+  readonly name: string
   readonly width: number
-  readonly height: number | null
+  readonly height?: number | null
 }
 
 export type Image = {
-  id: string
-  name: string
-  description: string | null
-  width: number | null
-  height: number | null
+  readonly id: string
+  readonly name: string
+  readonly description?: string | null
+  readonly width?: number | null
+  readonly height?: number | null
+  readonly templateName?: string | null
+  readonly url: string
 }
 
-// export type HomePagePostgreSQL = {
-//   readonly homepage_id: string
-//   readonly language: string
-//   readonly title?: string
-//   readonly subtitle?: string
-//   readonly description?: string
-// }
+export type HomePage = {
+  readonly language: Language
+  readonly title?: string
+  readonly subtitle?: string
+  readonly description?: string
+  readonly imageId?: string | null
+  readonly image?: string | null
+  readonly images?: Omit<Image, 'id' | 'name'>
+}

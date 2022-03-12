@@ -4,25 +4,6 @@ import crypto from 'crypto'
 
 const db = new Pool()
 
-async function initHomePageTable () {
-  try {
-    await db.query('DROP TABLE IF EXISTS homepage;')
-
-    await db.query(`
-      CREATE TABLE homepage (
-        language VARCHAR(7) NOT NULL,
-        title text,
-        subtitle text,
-        description text,
-        CHECK (language IN ('en', 'ru')),
-        PRIMARY KEY (language)
-      );`)
-    console.log('Table homepage created successful')
-  } catch (e) {
-    console.log(e)
-  }
-}
-
 async function initUsersTable () {
   try {
     await db.query('DROP TABLE IF EXISTS users CASCADE;')
@@ -81,24 +62,24 @@ async function initRefreshTokenTable () {
 
 async function initTemplatesImage () {
   try {
-    await db.query('DROP TABLE IF EXISTS templates_image')
+    await db.query('DROP TABLE IF EXISTS templates_image CASCADE;')
 
     await db.query(`
       CREATE TABLE templates_image (
-        template_image_id serial NOT NULL,
-        name VARCHAR(20) NOT NULL,
-        suffix VARCHAR(8) NOT NULL,
-        width SMALLINT NOT NULL,
+        name VARCHAR(8) NOT NULL,
+        width SMALLINT,
         height SMALLINT,
-        PRIMARY KEY (template_image_id),
+        PRIMARY KEY (name),
         UNIQUE (width, height)
       );
     `)
 
     await db.query(`
-      INSERT INTO templates_image (name, suffix, width, height)
-        VALUES ('for the tablet', 'mid', 800, null),
-          ('for the phone', 'small', 300, 300);
+      INSERT INTO templates_image (name, width, height)
+        VALUES 
+          ('original', null, null),
+          ('mid', 800, null),
+          ('small', 300, 300);
     `)
 
     console.log('added templates_image table successful')
@@ -116,11 +97,15 @@ async function initImagesTable () {
         id serial NOT NULL,
         image_id VARCHAR(10) NOT NULL,
         name TEXT NOT NULL,
-        description TEXT,
+        description TEXT DEFAULT '',
         width SMALLINT,
         height SMALLINT,
+        template_name VARCHAR(8) DEFAULT '',
         PRIMARY KEY (id),
-        UNIQUE (image_id, name)  
+        UNIQUE (image_id, name),
+        FOREIGN KEY ( template_name )
+          REFERENCES templates_image ( name )
+          ON DELETE SET NULL
       );
     `)
 
@@ -130,12 +115,32 @@ async function initImagesTable () {
   }
 }
 
+async function initHomePageTable () {
+  try {
+    await db.query('DROP TABLE IF EXISTS homepage;')
+
+    await db.query(`
+      CREATE TABLE homepage (
+        language VARCHAR(7) NOT NULL,
+        title text DEFAULT '',
+        subtitle text DEFAULT '',
+        description text DEFAULT '',
+        image VARCHAR(10) DEFAULT '',
+        CHECK (language IN ('en', 'ru')),
+        PRIMARY KEY (language)
+      );`)
+    console.log('Table homepage created successful')
+  } catch (e) {
+    console.log(e)
+  }
+}
+
 (async function () {
   await initUsersTable()
   await initRefreshTokenTable()
-  await initHomePageTable()
   await initTemplatesImage()
   await initImagesTable()
+  await initHomePageTable()
   await db.end()
   console.log('closed postgres')
 })()

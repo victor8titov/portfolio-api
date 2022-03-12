@@ -7,12 +7,12 @@ export async function getTemplatesImage (): Promise<TemplateImage[]> {
   return _db.getTemplatesImages()
 }
 
-export async function getImages (id: string): Promise<Image[]> {
+export async function getImages (id: string): Promise<Omit<Image, 'url'>[]> {
   const _db: ImagesInterface = new Images()
   return _db.getImages(id)
 }
 
-export async function createImages (images: Image[]): Promise<void> {
+export async function createImages (images: Omit<Image, 'url'>[]): Promise<void> {
   const _db: ImagesInterface = new Images()
   return _db.createImages(images)
 }

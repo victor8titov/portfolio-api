@@ -12,23 +12,31 @@ export async function uploadImage (req: any, res: Response, next: NextFunction) 
     const _file: Express.Multer.File | undefined = req.file
     if (!_file) return next(createError(400, 'Incorrect request', { type: TypeErrors.EMPTY_FILED, source: 'Field file' }))
 
-    const _images: Image[] = []
+    const _images: Omit<Image, 'url'>[] = []
 
     const _templates: (Omit<TemplateImage, 'width'> & {width: number | null})[] = await getTemplatesImage()
-    _templates.push({ id: '', name: 'original size', suffix: 'original', width: null, height: null })
 
     const _id = generateId(10)
 
     for (const template of _templates) {
-      const { width, height, suffix } = template
+      const { width, height, name: templateName } = template
 
-      const _name = `${req.name}-${_id}${width ? '-' + width : ''}${height ? 'x' + height : ''}-${suffix}.webp`
+      const _name = `${req.name}-${_id}${width ? '-' + width : ''}${height ? 'x' + height : ''}-${templateName}.webp`
 
       sharp(_file.buffer)
         .resize(template.width ? template.width : null, template.height)
         .webp()
         .toFile(`${pathForImages}/${_name}`)
-      _images.push({ id: _id, name: _name, description: req.description ? req.description : null, width, height })
+
+      _images.push(
+        {
+          id: _id,
+          name: _name,
+          description: req.description || '',
+          width,
+          height,
+          templateName
+        })
     }
 
     await createImages(_images)
@@ -37,7 +45,11 @@ export async function uploadImage (req: any, res: Response, next: NextFunction) 
       items: _images.map((item) => {
         return {
           url: `/public/images/${item.name}`,
-          description: item.description
+          name: item.name,
+          description: item.description,
+          width: item.width,
+          height: item.height,
+          templateName: item.templateName
         }
       })
     })

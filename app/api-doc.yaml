@@ -159,7 +159,7 @@ paths:
                   items:
                     type: array
                     items: 
-                      $ref: '#/components/schemas/HomePage'
+                      $ref: '#/components/schemas/HomePageResponse'
         400:
           description: Bad Request
           content:
@@ -181,7 +181,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/HomePage'
+              $ref: '#/components/schemas/HomePageRequest'
       responses:
         200:
           description: OK. Data saved 
@@ -203,6 +203,7 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         500:
           $ref: '#/components/responses/5XX'
+    
     put:
       tags:
         - homepage
@@ -213,7 +214,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/HomePage'
+              $ref: '#/components/schemas/HomePageRequest'
       responses:
         200:
           description: OK. Data Update 
@@ -983,29 +984,108 @@ components:
           example:
             totalPages: 100
     
-    HomePage:
-      allOf:
-        - $ref: "#/components/schemas/LanguageObject"
-        - type: object
-          properties:
-            title: 
-              type: string
-              readOnly: true
-            subtitle: 
-              type: string
-              readOnly: true
-            description:
-              type: string
-              readOnly: true
-            photo:
-              type: string
-              readOnly: true
-          example:
+    Image:
+      type: object
+      properties:
+        id: 
+          type: string
+        items: 
+          type: array
+          items:
+            type: object
+            properties:
+              url: 
+                type: string
+              width: 
+                type: string
+              height:
+                type: string
+              name: 
+                type: string
+              description: 
+                type: string
+              templateName:
+                type: string
+            required:
+              - url
+              - name
+      required:
+        - id
+        - items
+      example:
+        id: ddfdzrn1dw
+        items: [ {
+          name: pic-500x500-mid.png, 
+          templateName: 'mid',
+          width: 500, 
+          height: 500, 
+          description: about this photo text, 
+          url: public/images/pic-500x500-mid.png, 
+          } ]
+
+    HomePageBase: 
+      type: object
+      properties:
+        title: 
+          type: string
+          readOnly: true
+        subtitle: 
+          type: string
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+      example:
             title: Text for title main page
             subtitle: Text for subtitle main page
             description: text description for main page
-            photo: /public/my-photo.png
     
+    HomePageRequest:
+      allOf:
+        - $ref: "#/components/schemas/LanguageObject"
+        - $ref: "#/components/schemas/HomePageBase"
+        - type: object
+          properties:
+            imageId:
+              type: string
+              readOnly: true
+          example:
+            imageId: ddfdzrn1dw
+    
+    HomePageResponse:
+      allOf:
+        - $ref: "#/components/schemas/LanguageObject"
+        - $ref: "#/components/schemas/HomePageBase"
+        - type: object
+          properties:
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  templateName: 
+                    type: string
+                  width: 
+                    type: number
+                  height:
+                    type: number
+                  url: 
+                    type: string
+                  description:
+                    type: string
+                required:
+                  - url
+          example:
+            images:  [ 
+              {
+                templateName: 'original', 
+                width: 500, 
+                height: 500, 
+                url: 'public/images/pic-500x500-mid.png', 
+                description: 'Photo is my when I was young',
+              } ] 
+            
+            
     Project:
       allOf:
         - $ref: '#/components/schemas/LanguageObject'
@@ -1129,42 +1209,7 @@ components:
         token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
         refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
     
-    ImageEntity:
-      type: object
-      properties:
-        url: 
-          type: string
-        width: 
-          type: string
-        height:
-          type: string
-        name: 
-          type: string
-        description: 
-          type: string
-      required:
-        - url
-        - name
-        - description
-      example:
-        name: pic-500x500-mid.png
-        width: 500
-        height: 500
-        description: about this photo text
-        url: public/images/pic-500x500-mid.png
     
-    Image:
-      type: object
-      properties:
-        id: 
-          type: string
-        items: 
-          type: array
-          items:
-            $ref: "#/components/schemas/ImageEntity"
-      required:
-        - id
-        - items
     
     Deleted:
       type: object

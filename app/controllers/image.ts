@@ -24,7 +24,11 @@ export async function getImage (req: express.Request, res: express.Response, nex
 
     res.status(200).json({
       id: fileId,
-      items: _images.map(item => ({ ...item, url: `${urlForStaticImages}/${item.name}` }))
+      items: _images.map(item => (
+        {
+          ...item,
+          url: `${urlForStaticImages}/${item.name}`
+        }))
     })
   } catch (e: any) {
     next(createError(500, 'Error processing data during getting images.'))
