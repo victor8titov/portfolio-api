@@ -4,8 +4,17 @@ export enum Language {
   EN = 'en'
 }
 
+export type ErrorBody = {
+  message: string
+  source?: string
+  type?: string
+}
+
 export type OptionsRequest = {
-  language?: Language
+  readonly language?: Language
+  readonly page?: number | undefined
+  readonly pageSize?: number | undefined
+  readonly sort?: string[] | undefined
 }
 
 export enum TypeErrors {

@@ -4,6 +4,42 @@ import crypto from 'crypto'
 
 const db = new Pool()
 
+// async function initLanguagesTable () {
+//   try {
+//     await db.query('DROP TABLE IF EXISTS languages CASCADE;')
+
+//     await db.query(`
+//       CREATE TABLE languages (
+//         language VARCHAR(5) NOT NULL
+//         PRIMARY KEY (language)
+//       );
+//     `)
+
+//     await db.query(`
+//       INSERT INTO languages (language)
+//       VALUES
+//         ('ru')
+//         ('en');
+//     `)
+//   } catch (e) {
+//     console.log(e)
+//   }
+// }
+
+async function insertLanguages () {
+  try {
+    await db.query(`
+      INSERT INTO languages (language)
+      VALUES
+        ('ru'),
+        ('en');
+    `)
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+
 async function initUsersTable () {
   try {
     await db.query('DROP TABLE IF EXISTS users CASCADE;')
@@ -21,6 +57,25 @@ async function initUsersTable () {
       );`)
     console.log('Table users created successful')
 
+    const salt = crypto.randomBytes(16).toString('hex')
+    const password = process.env.PASSWORD_ADMIN
+    if (!password) return
+    const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'SHA1').toString('hex')
+    const user = process.env.USER_ADMIN
+
+    if (!user) return
+    await db.query(`
+        INSERT INTO users (name, email, password, salt)
+        VALUES ('${user}', 'victor8titov@gmail.com', '${hash}', '${salt}');
+    `)
+    console.log('added super user')
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+async function createSuperUser () {
+  try {
     const salt = crypto.randomBytes(16).toString('hex')
     const password = process.env.PASSWORD_ADMIN
     if (!password) return
@@ -88,6 +143,22 @@ async function initTemplatesImage () {
   }
 }
 
+async function createTemplatesForImages () {
+  try {
+    await db.query(`
+      INSERT INTO templates_image (name, width, height)
+        VALUES 
+          ('original', null, null),
+          ('mid', 800, null),
+          ('small', 300, 300);
+    `)
+
+    console.log('added templates_image table successful')
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 async function initImagesTable () {
   try {
     await db.query('DROP TABLE IF EXISTS images')
@@ -122,9 +193,9 @@ async function initHomePageTable () {
     await db.query(`
       CREATE TABLE homepage (
         language VARCHAR(7) NOT NULL,
-        title text DEFAULT '',
-        subtitle text DEFAULT '',
-        description text DEFAULT '',
+        title text NOT NULL DEFAULT '',
+        subtitle text NOT NULL DEFAULT '',
+        description text NOT NULL DEFAULT '',
         image VARCHAR(10) DEFAULT '',
         CHECK (language IN ('en', 'ru')),
         PRIMARY KEY (language)
@@ -136,11 +207,17 @@ async function initHomePageTable () {
 }
 
 (async function () {
-  await initUsersTable()
-  await initRefreshTokenTable()
-  await initTemplatesImage()
-  await initImagesTable()
-  await initHomePageTable()
+  // await initLanguagesTable()
+  // await initUsersTable()
+  // await initRefreshTokenTable()
+  // await initTemplatesImage()
+  // await initImagesTable()
+  // await initHomePageTable()
+
+  await createSuperUser()
+  await insertLanguages()
+  await createTemplatesForImages()
   await db.end()
-  console.log('closed postgres')
+
+  console.log('finish all tasks')
 })()

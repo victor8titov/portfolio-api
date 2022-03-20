@@ -242,19 +242,25 @@ paths:
       tags:
         - projects
       description: Get a list of all projects
-      requestBody:
-        description: Options to get a list
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                pagination:
-                  $ref: "#/components/schemas/PaginationInRequest"
-                sort:
-                  $ref: "#/components/schemas/Sort"
-                language:
-                  $ref: "#/components/schemas/Language"
+      parameters:
+        - in: query
+          name: page 
+          schema: 
+            type: number
+          example: 2
+        - in: query
+          name: pageSize
+          schema:
+            type: number
+          example: 10
+        - in: query
+          name: sort
+          schema:
+            $ref: "#/components/schemas/Sort"
+        - in: query
+          name: language
+          schema:
+            $ref: "#/components/schemas/Language"
       responses:
         200:
           description: Successfully receive list projects
@@ -279,8 +285,7 @@ paths:
                             type: string
                         example:
                           id: 10
-                      - $ref: '#/components/schemas/Project'
-                  
+                      - $ref: '#/components/schemas/ProjectResponse'
         400:
           $ref: '#/components/responses/4XX'
         500:
@@ -289,12 +294,14 @@ paths:
       tags:
         - projects
       description: Create a new project
+      security:
+        - BearerAuth: []
       requestBody:
         description: Data to create an essence project
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Project'
+              $ref: '#/components/schemas/ProjectRequest'
       responses:
         200:
           description: Entity project has been successfully created
@@ -317,17 +324,22 @@ paths:
         500:
           $ref: "#/components/responses/5XX"
 
-  /projects/{id}:
+  /project/{id}:
     get:
       tags:
         - projects
       description: Get data on one project
-      requestBody:
-        description: Options to get a list
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LanguageObject'
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID for find project
+        - in: query
+          name: language
+          schema:
+            $ref: "#/components/schemas/Language"
       responses:
         200: 
           description: Successfully receive data on one project
@@ -343,7 +355,7 @@ paths:
                         type: string
                     example:
                       id: 10
-                  - $ref: '#/components/schemas/Project'
+                  - $ref: '#/components/schemas/ProjectResponse'
         400:
           $ref: "#/components/responses/4XX"
         500:
@@ -352,12 +364,21 @@ paths:
       tags:
         - projects
       description: Change the essence object completely
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Id for find project
       requestBody:
         description: New parameters for project
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Project'
+              $ref: '#/components/schemas/ProjectRequest'
       responses:
         200:
           description: Project change has passed successfully
@@ -383,6 +404,15 @@ paths:
       tags:
         - projects
       description: Delete the project
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Id for find project for delete
       responses:
         200:
           description: Successful deleted the project
@@ -410,24 +440,6 @@ paths:
       tags:
         - skills
       description: Get a list of skills
-      requestBody: 
-        description: Options to get a list
-        content:
-          application/json:
-            schema: 
-              allOf:
-                - type: object
-                  properties:
-                    pagination:
-                      $ref: "#/components/schemas/PaginationInRequest"
-                    sort:
-                      $ref: "#/components/schemas/Sort"
-                  example:
-                    pagination: 
-                      page: 1
-                      pageSize: 10
-                    sort: ['+name']
-                - $ref: "#/components/schemas/LanguageObject"
       responses:
         200:
           description: successfully received a list of skills
@@ -497,12 +509,17 @@ paths:
       tags:
         - skills
       description: Get one entities skill by ID
-      requestBody:
-        description: Options to get a skill
-        content:
-          application/json:
-            schema: 
-              $ref: "#/components/schemas/LanguageObject"
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
+        - in: query
+          name: language
+          schema:
+            $ref: "#/components/schemas/Language"
       responses:
         200:
           description: Object experience received successfully 
@@ -527,6 +544,13 @@ paths:
       tags:
         - skills
       description: Change one entities skill by ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
       requestBody:
         description: Modified object experience
         content:
@@ -558,6 +582,13 @@ paths:
       tags:
         - skills
       description: Delete one entities skill by ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
       responses:
         200:
           description: Object skill deleted successfully 
@@ -574,19 +605,25 @@ paths:
     get:
       tags:
         - time-stamps
-      requestBody: 
-        description: Options to get a list
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                pagination:
-                  $ref: "#/components/schemas/PaginationInRequest"
-                sort:
-                  $ref: "#/components/schemas/Sort"
-                language: 
-                  $ref: "#/components/schemas/Language"
+      parameters:
+        - in: query
+          name: page 
+          schema: 
+            type: number
+          example: 2
+        - in: query
+          name: pageSize
+          schema:
+            type: number
+          example: 10
+        - in: query
+          name: sort
+          schema:
+            $ref: "#/components/schemas/Sort"
+        - in: query
+          name: language
+          schema:
+            $ref: "#/components/schemas/Language"
               
       responses:
         200:
@@ -644,12 +681,17 @@ paths:
       tags:
         - time-stamps
       description: Get one time stamps
-      requestBody:
-        description: Options for getting
-        content:
-          application/json:
-            schema: 
-              $ref: "#/components/schemas/LanguageObject"
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
+        - in: query
+          name: language
+          schema:
+            $ref: "#/components/schemas/Language"
       responses:
         200:
           description: Successfully received the data on the time stamp
@@ -665,6 +707,13 @@ paths:
       tags:
         - time-stamps
       description: Change one the Time stamp
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
       requestBody:
         description: New Data for Time stamp
         content:
@@ -686,6 +735,13 @@ paths:
       tags:
         - time-stamps
       description: Delete one of Time stamp
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
       responses:
         200: 
           description: Entity Time stamp deleted successful
@@ -715,17 +771,21 @@ paths:
       tags:
         - social-media
       description: Get list social media entities
-      requestBody:
-        description: Options
-        content:
-          application/json:
-            schema: 
-              type: object
-              properties:
-                language:
-                  $ref: "#/components/schemas/Language"
-                pagination:
-                  $ref: "#/components/schemas/PaginationInRequest"
+      parameters:
+        - in: query
+          name: page 
+          schema: 
+            type: number
+          example: 2
+        - in: query
+          name: pageSize
+          schema:
+            type: number
+          example: 10
+        - in: query
+          name: language
+          schema:
+            $ref: "#/components/schemas/Language"
       responses:
         200:
           description: OK
@@ -780,12 +840,14 @@ paths:
       tags:
         - social-media
       description: Create one of social media
-      requestBody:
-        description: Options
-        content:
-          application/json:
-            schema: 
-              $ref: "#/components/schemas/LanguageObject"
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
+      
       responses:
         200: 
           description: Got Social media entity successful
@@ -810,6 +872,13 @@ paths:
       tags:
         - social-media
       description: Change one the social media
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
       requestBody:
         description: New Data for social media
         content:
@@ -831,6 +900,13 @@ paths:
       tags:
         - social-media
       description: Delete one of Social media
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
       responses:
         200: 
           description: Entity Social media deleted successful
@@ -878,13 +954,20 @@ paths:
         500:
           $ref: "#/components/responses/5XX"
 
-  /image/:fileId:
+  /image/{id}:
     get:
       tags:
         - image
       description: Get information about uploading image
       security:
         - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID for find image
       responses:
         200: 
           description: Successfully receive data about image
@@ -903,6 +986,13 @@ paths:
       description: Delete image from server
       security:
         - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID for find image
       responses:
         200: 
           description: Successfully deleted image
@@ -957,6 +1047,15 @@ components:
           $ref: "#/components/schemas/Language"
       example: 
         language: 'en'
+    
+    LanguageArray:
+      type: array
+      items: 
+        type: string
+        enum:
+          - ru
+          - en
+      example: [ 'en', 'ru']
     
     PaginationInRequest:
       type: object
@@ -1085,44 +1184,136 @@ components:
                 description: 'Photo is my when I was young',
               } ] 
             
-            
-    Project:
-      allOf:
-        - $ref: '#/components/schemas/LanguageObject'
-        - type: object
+    ProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: object
           properties:
-            name:
+            ru:
               type: string
-            description:
+            en:
               type: string
-            type:
-              type: string
-            stack: 
-              type: array
-              items:
+        type:
+          type: string
+        stack: 
+          type: array
+          items:
+            type: string
+        spendTime: 
+          type: string
+        imagesId:
+          type: array
+          items:
+            type: string
+        links: 
+          type: array
+          items: 
+            type: object
+            properties:
+              name: 
                 type: string
-            spendTime: 
-              type: string
-            images:
-              type: array
-              items:
-                type: object
-                properties:
-                  miniature: 
-                    type: string
-                  fullSize: 
-                    type: string
-            linkToTemplate:
-              type: string
-          example: 
-            name: Organic
-            description: Таким образом дальнейшее ...
-            type: template
-            stack: ['html', 'css']
-            spendTime: 'time'
-            images: [{miniature: /public/photo.png,fullSize: /public/photo-full-size.png}]
-            linkToTemplate: http://template.dd
-            linkToWorkResource: http://someresource.dd
+              link:
+                type: string
+      required:
+        - name
+      example: 
+        name: Organic
+        description: {
+          en: 'description in English',
+          ru: 'description in Russian',
+        }
+        type: template
+        stack: ['html', 'css']
+        spendTime: '2 days'
+        links: [
+          {
+            name: 'github',
+            link: 'http://github.com/pupkin/project',
+          },
+          {
+            name: 'live project',
+            link: 'http://somedomain.com',
+          }
+        ]
+        imagesId: [ 
+            rlxkglndl,
+            xldkhsoox,
+        ]       
+    ProjectResponse:
+      type: object
+      properties:
+        languages: 
+          $ref: "#/components/schemas/LanguageArray"
+        currentLanguage: 
+          $ref: "#/components/schemas/Language"
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+        stack: 
+          type: array
+          items:
+            type: string
+        spendTime: 
+          type: string
+        images:
+          type: array
+          items:
+            type: object
+            properties:
+              templateName: 
+                type: string
+              width: 
+                type: number
+              height:
+                type: number
+              url: 
+                type: string
+              description:
+                type: string
+            required:
+              - url
+        links: 
+          type: array
+          items: 
+            type: object
+            properties:
+              name: 
+                type: string
+              link:
+                type: string
+      example: 
+        language: ['en', 'ru']
+        currentLanguage: 'ru'
+        name: Organic
+        description: 'description in Russian'
+        type: template
+        stack: ['html', 'css']
+        spendTime: 'time'
+        links: [
+          {
+            name: 'github',
+            link: 'http://github.com/pupkin/project',
+          },
+          {
+            name: 'live project',
+            link: 'http://somedomain.com',
+          }
+        ]
+        images: [
+          { 
+            templateName: 'original', 
+            width: 500, 
+            height: 500, 
+            url: 'public/images/pic-500x500-mid.png', 
+            description: 'Photo is my when I was young',
+          }
+        ]
     
     Skill:
       allOf:
@@ -1239,22 +1430,31 @@ components:
 
     4XX:
       type: object
-      required:
-        - message
       properties:
-        message:
-          type: string
-          readOnly: true
-        source:
-          type: string
-          readOnly: true
-        type: 
-          type: string  
-          readOnly: true
-      example:
-        source: title
-        type: TYPE_OF_ERROR 
-        message: Something is going wrong
+        errors:
+          type: array
+          items:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                readOnly: true
+              source:
+                type: string
+                readOnly: true
+              type: 
+                type: string  
+                readOnly: true
+      example: { 
+        errors: [ {
+          source: title,
+          type: TYPE_OF_ERROR ,
+          message: Something is going wrong,
+          }
+        ]
+      }
     
     5XX:
       type: object
