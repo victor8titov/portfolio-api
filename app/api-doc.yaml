@@ -154,12 +154,7 @@ paths:
           content: 
             application/json:
               schema:
-                type: object
-                properties:
-                  items:
-                    type: array
-                    items: 
-                      $ref: '#/components/schemas/HomePageResponse'
+                $ref: '#/components/schemas/HomePageResponse'
         400:
           description: Bad Request
           content:
@@ -1025,6 +1020,17 @@ components:
         bearerFormat: JWT
 
   schemas:
+    StringWithDivisionIntoLanguages:
+      type: object
+      properties:
+        en: 
+          type: string
+        ru:
+          type: string
+      example: {
+        en: 'Text in English',
+        ru: 'Текст на русском языке',
+      }
     Sort: 
       type: array
       items:
@@ -1141,48 +1147,107 @@ components:
     
     HomePageRequest:
       allOf:
-        - $ref: "#/components/schemas/LanguageObject"
-        - $ref: "#/components/schemas/HomePageBase"
         - type: object
           properties:
-            imageId:
-              type: string
-              readOnly: true
+            title: 
+              $ref: "#/components/schemas/StringWithDivisionIntoLanguages"
+            subtitle: 
+              $ref: "#/components/schemas/StringWithDivisionIntoLanguages"
+            description:
+              $ref: "#/components/schemas/StringWithDivisionIntoLanguages"
           example:
-            imageId: ddfdzrn1dw
-    
-    HomePageResponse:
-      allOf:
-        - $ref: "#/components/schemas/LanguageObject"
-        - $ref: "#/components/schemas/HomePageBase"
+            title: {
+              en: 'text in English',
+              ru: 'На русском',
+            }
+            subtitle: {
+              en: 'text in English',
+              ru: 'На русском',
+            }
+            description: {
+              en: 'text in English',
+              ru: 'На русском',
+            }
         - type: object
           properties:
-            images:
+            avatars:
               type: array
               items:
                 type: object
                 properties:
-                  templateName: 
+                  type:
                     type: string
-                  width: 
-                    type: number
-                  height:
-                    type: number
-                  url: 
+                  imageId:  
                     type: string
-                  description:
-                    type: string
-                required:
-                  - url
           example:
-            images:  [ 
+            avatars: [
               {
-                templateName: 'original', 
-                width: 500, 
-                height: 500, 
-                url: 'public/images/pic-500x500-mid.png', 
-                description: 'Photo is my when I was young',
-              } ] 
+                type: 'black',
+                imageId: 'ddfdzrn1dw',
+              }
+            ]
+    
+    HomePageResponse:
+      allOf:
+        - type: object
+          properties:
+            currentLanguage:
+              $ref: "#/components/schemas/Language"
+            languages:
+              type: array
+              items:
+                $ref: "#/components/schemas/Language"
+          example:
+            currentLanguage: 'en'
+            languages: [ 'ru', 'en' ]
+        - $ref: "#/components/schemas/HomePageBase"
+        - type: object
+          properties:
+            avatars:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  images:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        id: 
+                          type: string
+                        name: 
+                          type: string
+                        description:
+                          type: string
+                        templateName: 
+                          type: string
+                        width: 
+                          type: number
+                        height:
+                          type: number
+                        url: 
+                          type: string
+                      required:
+                        - url
+          example:
+            avatars:  [ 
+              { 
+                type: black,
+                images: [
+                  {
+                    id: 'xxxxxx',
+                    name: 'pic-500x500-mid.png',
+                    description: 'Photo is my when I was young',
+                    templateName: 'original', 
+                    width: 500, 
+                    height: 500, 
+                    url: 'public/images/pic-500x500-mid.png', 
+                  }
+                ]
+              }
+            ] 
             
     ProjectRequest:
       type: object

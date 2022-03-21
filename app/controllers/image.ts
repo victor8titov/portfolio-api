@@ -67,7 +67,8 @@ export async function deleteImage (req: express.Request, res: express.Response, 
     }
 
     for (const _image of _images) {
-      await deleteFile(path.resolve(pathForImages, _image.name))
+      // TODO chek this !
+      if (_image.name) await deleteFile(path.resolve(pathForImages, _image.name))
     }
 
     res.status(200).json({

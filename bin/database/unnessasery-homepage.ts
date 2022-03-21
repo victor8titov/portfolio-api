@@ -1,5 +1,6 @@
-import { HomePage, Language } from './types'
+import { Language } from './types'
 import { DatabaseMain } from '.'
+import { HomePage } from '../../app/models/homepage'
 
 export interface HomePageDataInterface {
   getHomePage(language?: Language): Promise<Omit<HomePage, 'imageId' | 'images'>[] | undefined>

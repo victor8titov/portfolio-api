@@ -1,13 +1,8 @@
 import express, { NextFunction } from 'express'
-import escape from 'validator/lib/escape'
-import { body, ValidationChain, query, validationResult, ValidationError, Result, sanitize, param } from 'express-validator'
-import { checkLanguageField } from '../../bin/common/check-languages'
-import { Language, TypeErrors } from '../../bin/database/types'
+import { validationResult, ValidationError, Result } from 'express-validator'
+import { Language } from '../../bin/database/types'
 import createError from 'http-errors'
-import { getImages, getListImagesId } from '../models/image'
-import path from 'path'
-import { urlForStaticImages } from '../../bin/common/paths'
-import { generateId } from '../../bin/common/generate-id'
+import { getImagesByProjectId } from '../models/image'
 import { getLanguages } from '../models/language'
 import * as model from '../models/project'
 import { ProjectListWithPagination } from '../models/project'
@@ -49,6 +44,7 @@ export async function getProject (req: express.Request, res: express.Response, n
     const projectId = req.params.projectId
 
     const _project = await model.getProjectById(projectId, language as Language)
+    const images = await getImagesByProjectId(projectId)
 
     if (!_project) {
       return next(createError(400, 'Project with such id does not exists'))
@@ -57,7 +53,8 @@ export async function getProject (req: express.Request, res: express.Response, n
     res.status(200).json({
       languages: _supportedLanguages,
       currentLanguage: language,
-      ..._project
+      ..._project,
+      images
     } as model.ProjectResponse)
   } catch (e) {
     next(createError(500, 'Error is getting during getting Project'))

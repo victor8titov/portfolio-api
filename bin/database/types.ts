@@ -50,28 +50,7 @@ export type RefreshToken = {
   readonly expiry: string
 }
 
-export type TemplateImage = {
-  readonly name: string
-  readonly width: number
-  readonly height?: number | null
-}
 
-export type Image = {
-  readonly id: string
-  readonly name: string
-  readonly description?: string | null
-  readonly width?: number | null
-  readonly height?: number | null
-  readonly templateName?: string | null
-  readonly url: string
-}
 
-export type HomePage = {
-  readonly language: Language
-  readonly title?: string
-  readonly subtitle?: string
-  readonly description?: string
-  readonly imageId?: string | null
-  readonly image?: string | null
-  readonly images?: Omit<Image, 'id' | 'name'>
-}
+
+

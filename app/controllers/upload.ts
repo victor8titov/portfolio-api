@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
-import { Image, TemplateImage, TypeErrors } from '../../bin/database/types'
+import { TypeErrors } from '../../bin/database/types'
 import createError from 'http-errors'
 import sharp from 'sharp'
-import { createImages, getTemplatesImage } from '../models/image'
+import { createImages, getTemplatesImage, Image, TemplateImage } from '../models/image'
 import { generateId } from '../../bin/common/generate-id'
 import { pathForImages } from '../../bin/common/paths'
 

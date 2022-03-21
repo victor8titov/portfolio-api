@@ -1,16 +1,11 @@
 import express, { NextFunction, RequestHandler } from 'express'
 import escape from 'validator/lib/escape'
-import { body, ValidationChain, query, validationResult, ValidationError, Result, sanitize, param } from 'express-validator'
-import { checkLanguageField } from '../../bin/common/check-languages'
-import { Language, TypeErrors } from '../../bin/database/types'
+import { body, ValidationChain, query, param } from 'express-validator'
 import createError from 'http-errors'
-import path from 'path'
-import { urlForStaticImages } from '../../bin/common/paths'
-import { generateId } from '../../bin/common/generate-id'
 import { getLanguages } from '../../app/models/language'
 import { getNameProjects } from '../../app/models/project'
-import { getListImagesId } from '../../app/models/image'
-import { validateLanguage, validatePagination } from './validate-common'
+import { validateImagesId, validateLanguage, validatePagination } from './validate-common'
+import { repeatCheck } from '../common/check-repeat'
 
 export function validate (method: string): (ValidationChain | RequestHandler)[] {
   switch (method) {
@@ -100,16 +95,8 @@ const validateSort = [
         if (!value.every(i => possibleFields.some(j => j === i))) return false
 
         /* check repeating field from sort list */
-        let repeatField = false
-        value.reduce((total, current) => {
-          if (repeatField) return total
-
-          const _field = current.slice(1)
-          if (total.some((i: string) => i === _field)) repeatField = true
-          total.push(_field)
-          return total
-        }, [])
-        if (repeatField) return false
+        const list = value.map(i => i.slice(1))
+        return !repeatCheck(list)
       }
       return true
     })
@@ -154,25 +141,6 @@ async function validateName (req: express.Request, res: express.Response, next: 
     next()
   } catch (e) {
     next(createError(500, 'Error is during validate Name'))
-  }
-}
-
-async function validateImagesId (req: express.Request, res: express.Response, next: NextFunction) {
-  try {
-    const imagesId = req.body.imagesId
-    if (!imagesId) return next()
-
-    const _imagesIdFromDatabase = await getListImagesId()
-
-    const _checkImagesId = imagesId.every(
-      (_img: string) => _imagesIdFromDatabase.some(_imgFromDB => _imgFromDB === _img))
-    if (!_checkImagesId) {
-      return next(createError(400, 'Some from list images id is wrong', { source: 'imagesId' }))
-    }
-
-    next()
-  } catch (e) {
-    next(createError(500, 'Error is during validate images ID'))
   }
 }
 

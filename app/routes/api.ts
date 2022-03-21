@@ -5,6 +5,7 @@ import * as uploadControllers from '../controllers/upload'
 import * as imageControllers from '../controllers/image'
 import * as projectControllers from '../controllers/project'
 import * as middlewareProject from '../../bin/middleware/projects'
+import * as middlewareHomePage from '../../bin/middleware/homepage'
 import { auth } from '../../bin/middleware/auth'
 import createError from 'http-errors'
 import { uploadImage } from '../../bin/middleware/upload'
@@ -16,9 +17,9 @@ router.get('/auth/login', authController.login)
 router.get('/auth/logout', authController.logout)
 router.post('/auth/refresh-token', authController.refreshToken)
 
-router.get('/homepage', homepage.read)
-router.post('/homepage', auth, homepage.create)
-router.put('/homepage', auth, homepage.update)
+router.get('/homepage', middlewareHomePage.validate('read'), homepage.read)
+router.post('/homepage', auth, middlewareHomePage.validate('create'), homepage.create)
+router.put('/homepage', auth, middlewareHomePage.validate('update'), homepage.update)
 
 /* goal Project */
 router.get('/projects',
@@ -26,6 +27,7 @@ router.get('/projects',
   projectControllers.getProjects
 )
 router.post('/projects',
+  auth,
   middlewareProject.validate('create'),
   projectControllers.create
 )
@@ -34,10 +36,12 @@ router.get('/project/:projectId',
   projectControllers.getProject
 )
 router.put('/project/:projectId',
+  auth,
   middlewareProject.validate('put'),
   projectControllers.update
 )
 router.delete('/project/:projectId',
+  auth,
   middlewareProject.validate('delete'),
   projectControllers.deleteProject)
 

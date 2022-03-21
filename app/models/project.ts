@@ -1,6 +1,7 @@
 import { Client } from 'pg'
 import { urlForStaticImages } from '../../bin/common/paths'
-import { Image, Language, OptionsRequest } from '../../bin/database/types'
+import { Language, OptionsRequest } from '../../bin/database/types'
+import { Image } from './image'
 
 export type Link = {
   readonly name: string
@@ -150,21 +151,8 @@ export async function getProjectById (projectId: string, language: Language): Pr
     `)
     const links = _linksRows.rows || []
 
-    /* form images */
-    const _imagesRows = await db.query(`
-      SELECT name, description, width, height, template_name FROM images
-        WHERE project_id = '${projectId}';
-      `)
-    const images = _imagesRows.rows.map<Omit<Image, 'id' | 'name'>>((item) => ({
-      description: item.description || '',
-      width: item.width,
-      height: item.height,
-      templateName: item.template_name,
-      url: `${urlForStaticImages}/${item.name}`
-    })) || []
-
     const { name, type, stack, spend_time: spendTime } = _project
-    return { name, description, type, spendTime, stack, links, images }
+    return { name, description, type, spendTime, stack, links }
   } catch (e: any) {
     console.error(e)
     throw e

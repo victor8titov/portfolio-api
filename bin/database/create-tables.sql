@@ -36,24 +36,6 @@ CREATE TABLE refresh_tokens (
 );
 
 
-
-
---- create table homepage ---
-DROP TABLE IF EXISTS homepage CASCADE;
-
-CREATE TABLE homepage (
-  language VARCHAR(5) NOT NULL,
-  title text NOT NULL DEFAULT '',
-  subtitle text NOT NULL DEFAULT '',
-  description text NOT NULL DEFAULT '',
-  image VARCHAR(10) DEFAULT '',
-  PRIMARY KEY (language),
-  FOREIGN KEY ( language )
-    REFERENCES languages ( language )
-    ON DELETE CASCADE
-);
-
-
 --- create table projects
 DROP TABLE IF EXISTS projects CASCADE;
 
@@ -96,6 +78,21 @@ CREATE TABLE links (
     ON DELETE CASCADE
 );
 
+--- create table homepage ---
+DROP TABLE IF EXISTS homepage CASCADE;
+
+CREATE TABLE homepage (
+  language VARCHAR(5) NOT NULL,
+  title text NOT NULL DEFAULT '',
+  subtitle text NOT NULL DEFAULT '',
+  description text NOT NULL DEFAULT '',
+  PRIMARY KEY (language),
+  FOREIGN KEY ( language )
+    REFERENCES languages ( language )
+    ON DELETE CASCADE
+);
+
+
 
 --- create table templates_image ---
 DROP TABLE IF EXISTS templates_image CASCADE;
@@ -119,7 +116,8 @@ CREATE TABLE images (
   width SMALLINT,
   height SMALLINT,
   template_name VARCHAR(8) DEFAULT '',
-  project_id INT,
+  project_id INT DEFAULT NULL,
+  type_avatar VARCHAR(10) DEFAULT NULL,
   PRIMARY KEY (id),
   UNIQUE (image_id, name),
   FOREIGN KEY ( template_name )
@@ -129,3 +127,4 @@ CREATE TABLE images (
     REFERENCES projects (project_id)
     ON DELETE SET NULL
 );
+
