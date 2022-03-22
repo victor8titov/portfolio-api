@@ -1,30 +1,16 @@
 import { NextFunction, Request, Response } from 'express'
-import { TypeErrors } from '../../bin/database/types'
+import { Result, ValidationError, validationResult } from 'express-validator'
 import createError from 'http-errors'
 import { deleteRefreshTokenByUserName, generateRefreshToken, generateToken, getPayloadToken, getRefreshToken, validPassword, validToken } from '../models/auth'
-import { getUser } from '../models/user'
+import { getUserById, getUserByName } from '../models/user'
 
 export async function login (req: Request, res: Response, next: NextFunction) {
   try {
-    const message = 'One of the USERNAME or PASSWORD fields is incorrect.'
-    const { username, password } = req.query
+    const message = 'One of the username or password fields is incorrect.'
+    const username: string = req.query.username as string
+    const password: string = req.query.password as string
 
-    // TODO: как обрабатывать строку перед отдаче базе
-    // получил ошибку когда отправил в имени '
-
-    if (
-      typeof username !== 'string' ||
-      typeof password !== 'string' ||
-      !username?.length ||
-      !password?.length
-    ) {
-      return next(createError(400, message, {
-        source: 'One of fields in query string.',
-        type: `${TypeErrors.INVALID_TYPE} or ${TypeErrors.EMPTY_FILED}`
-      }))
-    }
-
-    const _user = await getUser({ userName: username })
+    const _user = await getUserByName(username)
     if (!_user) {
       return next(createError(400, message))
     }
@@ -38,24 +24,13 @@ export async function login (req: Request, res: Response, next: NextFunction) {
     const refreshToken = await generateRefreshToken(_user)
     res.status(200).json({ token, refreshToken })
   } catch (e: any) {
-    next(createError(500, e.message || 'Error processing data for login.'))
+    next(createError(500, 'Error processing data for login.'))
   }
 }
 
 export async function logout (req: Request, res: Response, next: NextFunction) {
   try {
-    const message = 'Username field is incorrect.'
-    const { username } = req.query
-
-    if (
-      typeof username !== 'string' ||
-      !username?.length
-    ) {
-      return next(createError(400, message, {
-        source: 'Field in query string.',
-        type: `${TypeErrors.INVALID_TYPE} or ${TypeErrors.EMPTY_FILED}`
-      }))
-    }
+    const username: string = req.query.username as string
 
     await deleteRefreshTokenByUserName(username)
     res.status(200).json({
@@ -63,7 +38,7 @@ export async function logout (req: Request, res: Response, next: NextFunction) {
       message: 'Logout was made successful'
     })
   } catch (e: any) {
-    next(createError(500, e.message || 'Error processing data'))
+    next(createError(500, 'Error processing logout'))
   }
 }
 
@@ -90,7 +65,7 @@ export async function refreshToken (req: Request, res: Response, next: NextFunct
       return next(createError(400, 'Refresh token not valid'))
     }
 
-    const _user = await getUser({ userId: _refreshTokenFromDataBase.userId })
+    const _user = await getUserById(_refreshTokenFromDataBase.userId)
     if (!_user) {
       return next(createError(500))
     }

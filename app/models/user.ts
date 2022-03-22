@@ -1,23 +1,40 @@
+import { Client } from 'pg'
 import { User } from '../../bin/database/types'
-import { UserData, UserDataInterface } from '../../bin/database/user'
 
-type Options = {
-  userId?: string
-  userName?: string
+export async function getUserById (id: string): Promise<User | undefined> {
+  const db = new Client()
+  try {
+    await db.connect()
+
+    const { rows } = await db.query(`
+      SELECT user_id as id, name, email, password, salt FROM users 
+        WHERE user_id = '${id}';
+      `)
+
+    return rows.shift() || undefined
+  } catch (e: any) {
+    console.error(e)
+    throw e
+  } finally {
+    await db.end()
+  }
 }
 
-export async function getUser (options: Options): Promise<User | undefined> {
-  const { userId, userName } = options
+export async function getUserByName (name: string): Promise<User | undefined> {
+  const db = new Client()
+  try {
+    await db.connect()
 
-  if (!userId && !userName) throw new Error('getUser method did not receive any parameter to search for data')
+    const { rows } = await db.query(`
+      SELECT user_id as id, name, email, password, salt FROM users 
+        WHERE name = '${name}';
+      `)
 
-  const _db: UserDataInterface = new UserData()
-
-  if (userId) {
-    return _db.getUserById(userId)
-  }
-
-  if (userName) {
-    return _db.getUserByName(userName)
+    return rows.shift() || undefined
+  } catch (e: any) {
+    console.error(e)
+    throw e
+  } finally {
+    await db.end()
   }
 }

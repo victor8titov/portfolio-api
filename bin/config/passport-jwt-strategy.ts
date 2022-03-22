@@ -1,7 +1,7 @@
 import passport from 'passport'
 import { Strategy, ExtractJwt } from 'passport-jwt'
+import { getUserById } from '../../app/models/user'
 import { TokenPayload } from '../database/types'
-import { UserData, UserDataInterface } from '../database/user'
 
 const opts = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -10,9 +10,7 @@ const opts = {
 
 passport.use(new Strategy(opts, async function (payload: TokenPayload, done) {
   try {
-    const _db: UserDataInterface = new UserData()
-
-    const _user = await _db.getUserById(payload.userId)
+    const _user = await getUserById(payload.userId)
 
     if (_user) {
       return done(null, _user)

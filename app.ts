@@ -10,7 +10,7 @@ import YAML from 'yamljs'
 import passport from 'passport'
 import './bin/config/passport-jwt-strategy'
 import { routersForStatic } from './app/routes/static'
-import { handlerError } from './bin/middleware/handler-error'
+import { errorHandler } from './bin/middleware/handler-error'
 
 const swaggerDocument = YAML.load('./app/api-doc.yaml')
 
@@ -37,6 +37,6 @@ app.use(function (req, res, next) {
   next(createError(404))
 })
 
-app.use(handlerError)
+app.use(errorHandler)
 
 export default app

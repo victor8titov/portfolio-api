@@ -6,15 +6,15 @@ import * as imageControllers from '../controllers/image'
 import * as projectControllers from '../controllers/project'
 import * as middlewareProject from '../../bin/middleware/projects'
 import * as middlewareHomePage from '../../bin/middleware/homepage'
-import { auth } from '../../bin/middleware/auth'
+import { auth, validate as validateAuth } from '../../bin/middleware/auth'
 import createError from 'http-errors'
 import { uploadImage } from '../../bin/middleware/upload'
-import { handlerError } from '../../bin/middleware/handler-error'
+import { errorHandler } from '../../bin/middleware/handler-error'
 
 const router = express.Router()
 
-router.get('/auth/login', authController.login)
-router.get('/auth/logout', authController.logout)
+router.get('/auth/login', validateAuth('login'), authController.login)
+router.get('/auth/logout', validateAuth('logout'), authController.logout)
 router.post('/auth/refresh-token', authController.refreshToken)
 
 router.get('/homepage', middlewareHomePage.validate('read'), homepage.read)
@@ -54,6 +54,6 @@ router.use(function (req: Request, res: Response, next: NextFunction) {
   next(createError(404))
 })
 
-router.use(handlerError)
+router.use(errorHandler)
 
 export { router as routersForApi }
