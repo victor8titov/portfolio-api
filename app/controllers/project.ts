@@ -9,11 +9,6 @@ import { Language } from '../models/types'
 
 export async function create (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const errors: Result<ValidationError> = validationResult(req)
-    if (!errors.isEmpty()) {
-      return next(errors)
-    }
-
     const id = await model.createProject({ ...req.body })
 
     res.status(200).json({
@@ -27,11 +22,6 @@ export async function create (req: express.Request, res: express.Response, next:
 
 export async function getProject (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const errors: Result<ValidationError> = validationResult(req)
-    if (!errors.isEmpty()) {
-      return next(errors)
-    }
-
     const language = req.query.language
 
     const _supportedLanguages = await getLanguages()
@@ -63,11 +53,6 @@ export async function getProject (req: express.Request, res: express.Response, n
 
 export async function getProjects (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const errors: Result<ValidationError> = validationResult(req)
-    if (!errors.isEmpty()) {
-      return next(errors)
-    }
-
     const { language } = req.query
     const page = parseInt(req.query.page as string) || undefined
     const pageSize = parseInt(req.query.pageSize as string) || undefined
@@ -115,11 +100,6 @@ export async function getProjects (req: express.Request, res: express.Response, 
 
 export async function update (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const errors: Result<ValidationError> = validationResult(req)
-    if (!errors.isEmpty()) {
-      return next(errors)
-    }
-
     const projectId = req.params.projectId
 
     await model.updateProject({ ...req.body }, projectId)
@@ -132,11 +112,6 @@ export async function update (req: express.Request, res: express.Response, next:
 
 export async function deleteProject (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const errors: Result<ValidationError> = validationResult(req)
-    if (!errors.isEmpty()) {
-      return next(errors)
-    }
-
     const projectId = req.params.projectId
 
     await model.deleteProject(projectId)

@@ -6,23 +6,27 @@ import { repeatCheck } from '../common/check-repeat'
 import { AvatarRequest } from '../../app/models/homepage'
 import { getListImagesId } from '../../app/models/image'
 import createError from 'http-errors'
+import { validationErrorHandler } from './handler-error'
 
 export function validate (method: 'read' | 'create' | 'update'): (ValidationChain | RequestHandler)[] {
   switch (method) {
     case 'read': {
       return [
-        ...validateLanguage
+        ...validateLanguage,
+        validationErrorHandler
       ]
     }
     case 'create': {
       return [
         ...validateBody,
+        validationErrorHandler,
         validateImagesId
       ]
     }
     case 'update': {
       return [
         ...validateBody,
+        validationErrorHandler,
         validateImagesId
       ]
     }

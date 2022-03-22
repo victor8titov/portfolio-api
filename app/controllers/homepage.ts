@@ -3,16 +3,10 @@ import { createHomePage, getHomePage, HomePage, updateHomePage } from '../models
 import createError from 'http-errors'
 import { getAvatars, updateAvatar } from '../models/image'
 import { getLanguages } from '../models/language'
-import { Result, ValidationError, validationResult } from 'express-validator'
 import { Language } from '../models/types'
 
 export async function read (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const errors: Result<ValidationError> = validationResult(req)
-    if (!errors.isEmpty()) {
-      return next(errors)
-    }
-
     const language = (req.query.language as Language)
 
     let result: HomePage = {}
@@ -45,11 +39,6 @@ export async function read (req: express.Request, res: express.Response, next: N
 
 export async function create (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const errors: Result<ValidationError> = validationResult(req)
-    if (!errors.isEmpty()) {
-      return next(errors)
-    }
-
     const { title, description, subtitle, avatars } = req.body
 
     const _error = await createHomePage({ title, description, subtitle })
@@ -68,11 +57,6 @@ export async function create (req: express.Request, res: express.Response, next:
 
 export async function update (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const errors: Result<ValidationError> = validationResult(req)
-    if (!errors.isEmpty()) {
-      return next(errors)
-    }
-
     const { title, description, subtitle, avatars = [] } = req.body
 
     await updateHomePage({ title, description, subtitle, avatars })

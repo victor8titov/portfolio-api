@@ -7,6 +7,7 @@ import * as projectControllers from '../controllers/project'
 import { validate as validateProjects } from '../../bin/middleware/projects'
 import { validate as validateHomepage } from '../../bin/middleware/homepage'
 import { auth, validate as validateAuth } from '../../bin/middleware/auth'
+import { validate as validateImage } from '../../bin/middleware/image'
 import createError from 'http-errors'
 import { uploadImage } from '../../bin/middleware/upload'
 import { errorHandler } from '../../bin/middleware/handler-error'
@@ -47,8 +48,8 @@ router.delete('/project/:projectId',
 
 router.post('/upload/image', auth, uploadImage, uploadControllers.uploadImage)
 
-router.get('/image/:fileId', auth, imageControllers.getImage)
-router.delete('/image/:fileId', auth, imageControllers.deleteImage)
+router.get('/image/:fileId', auth, validateImage, imageControllers.getImage)
+router.delete('/image/:fileId', auth, validateImage, imageControllers.deleteImage)
 
 router.use(function (req: Request, res: Response, next: NextFunction) {
   next(createError(404))

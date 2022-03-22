@@ -45,7 +45,7 @@ export async function getTemplatesImage (): Promise<TemplateImage[]> {
   }
 }
 
-export async function getImages (id: string): Promise<Omit<Image, 'url'>[]> {
+export async function getImages (id: string): Promise<Image[]> {
   const db = new Client()
   try {
     await db.connect()
@@ -67,7 +67,7 @@ export async function getImages (id: string): Promise<Omit<Image, 'url'>[]> {
   }
 }
 
-export async function getImagesByProjectId (projectId: string): Promise<Omit<Image, 'url'>[]> {
+export async function getImagesByProjectId (projectId: string): Promise<Image[]> {
   const db = new Client()
   try {
     await db.connect()

@@ -6,12 +6,14 @@ import { getLanguages } from '../../app/models/language'
 import { getNameProjects } from '../../app/models/project'
 import { validateImagesId, validateLanguage, validatePagination } from './validate-common'
 import { repeatCheck } from '../common/check-repeat'
+import { validationErrorHandler } from './handler-error'
 
 export function validate (method: 'create' | 'getById' | 'getProjects' | 'put' | 'delete'): (ValidationChain | RequestHandler)[] {
   switch (method) {
     case 'create': {
       return [
         ...validateBody,
+        validationErrorHandler,
         validateLanguageFromDescription,
         validateName,
         validateImagesId
@@ -20,21 +22,25 @@ export function validate (method: 'create' | 'getById' | 'getProjects' | 'put' |
     case 'getById': {
       return [
         ...validateId,
-        ...validateLanguage
+        ...validateLanguage,
+        validationErrorHandler
       ]
     }
     case 'getProjects': {
       return [
         ...validateLanguage,
         ...validatePagination,
-        ...validateSort
+        ...validateSort,
+        validationErrorHandler
       ]
     }
     case 'put': {
       return [
         ...validateId,
+        validationErrorHandler,
         isExistById,
         ...validateBody,
+        validationErrorHandler,
         validateLanguageFromDescription,
         validateName,
         validateImagesId
@@ -43,6 +49,7 @@ export function validate (method: 'create' | 'getById' | 'getProjects' | 'put' |
     case 'delete': {
       return [
         ...validateId,
+        validationErrorHandler,
         isExistById
       ]
     }

@@ -3,16 +3,11 @@ import fs from 'fs'
 import createError from 'http-errors'
 import { deleteImages, getImages } from '../models/image'
 import path from 'path'
-import { pathForImages, urlForStaticImages } from '../../bin/common/paths'
+import { pathForImages } from '../../bin/common/paths'
 
 export async function getImage (req: express.Request, res: express.Response, next: NextFunction) {
   try {
     const fileId = req.params.fileId
-    if (!fileId) {
-      return next(createError(400, 'Wrong id', {
-        source: 'id'
-      }))
-    }
 
     const _images = await getImages(fileId)
 
@@ -24,11 +19,10 @@ export async function getImage (req: express.Request, res: express.Response, nex
 
     res.status(200).json({
       id: fileId,
-      items: _images.map(item => (
-        {
-          ...item,
-          url: `${urlForStaticImages}/${item.name}`
-        }))
+      items: _images.map(item => {
+        const { id, ...rest } = item
+        return { ...rest }
+      })
     })
   } catch (e: any) {
     next(createError(500, 'Error processing data during getting images.'))
@@ -38,11 +32,6 @@ export async function getImage (req: express.Request, res: express.Response, nex
 export async function deleteImage (req: express.Request, res: express.Response, next: NextFunction) {
   try {
     const fileId = req.params.fileId
-    if (!fileId) {
-      return next(createError(400, 'Wrong id', {
-        source: 'id is wrong'
-      }))
-    }
 
     const _images = await getImages(fileId)
 
