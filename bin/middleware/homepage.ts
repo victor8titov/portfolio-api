@@ -7,7 +7,7 @@ import { AvatarRequest } from '../../app/models/homepage'
 import { getListImagesId } from '../../app/models/image'
 import createError from 'http-errors'
 
-export function validate (method: string): (ValidationChain | RequestHandler)[] {
+export function validate (method: 'read' | 'create' | 'update'): (ValidationChain | RequestHandler)[] {
   switch (method) {
     case 'read': {
       return [

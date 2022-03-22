@@ -1,10 +1,11 @@
 import express, { NextFunction, Request, Response, RequestHandler } from 'express'
 import passport from 'passport'
-import { TypeErrors, User } from '../database/types'
 import createError from 'http-errors'
-import { body, ValidationChain, query, param, Result, ValidationError, validationResult } from 'express-validator'
-import { getUserByName } from '../../app/models/user'
+import { body, ValidationChain, query } from 'express-validator'
+import { getUserByName, User } from '../../app/models/user'
 import { validationErrorHandler } from './handler-error'
+import { TypeErrors } from '../../app/models/types'
+import jwt from 'jsonwebtoken'
 
 export function auth (req: Request, res: Response, next: NextFunction) {
   passport.authenticate('jwt', function (err: any, user: User, info: Error) {
@@ -24,7 +25,7 @@ export function auth (req: Request, res: Response, next: NextFunction) {
   })(req, res, next)
 }
 
-export function validate (method: string): (ValidationChain | RequestHandler)[] {
+export function validate (method: 'login' | 'logout' | 'refreshToken'): (ValidationChain | RequestHandler)[] {
   switch (method) {
     case 'login': {
       return [
@@ -49,7 +50,10 @@ export function validate (method: string): (ValidationChain | RequestHandler)[] 
     }
     case 'refreshToken': {
       return [
-        
+        body('refreshToken', 'Refresh Token is required!').notEmpty(),
+        body('refreshToken', 'Field is not JWT token').isJWT(),
+        validationErrorHandler,
+        validateToken
       ]
     }
     default: {
@@ -68,4 +72,21 @@ async function validateUser (req: express.Request, res: express.Response, next: 
   }
 
   next()
+}
+
+function validateToken (req: express.Request, res: express.Response, next: NextFunction) {
+  const secret = process.env.JWT_SECRET
+
+  if (!secret) {
+    return next(createError(500, 'No data for checking refresh token'))
+  }
+
+  const { refreshToken } = req.body
+
+  jwt.verify(refreshToken, secret, function (err: any, decoded: any) {
+    if (err) return next(createError(400, err.message))
+
+    if (decoded) next()
+    else next(createError(400))
+  })
 }

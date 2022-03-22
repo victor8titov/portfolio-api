@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import createError, { HttpError } from 'http-errors'
+import { Language, TypeErrors } from '../../app/models/types'
 import { checkLanguageField } from '../common/unessasery-check-languages'
-import { Language, TypeErrors } from '../database/types'
 
 export function checkLanguage (req: Request, res: Response, next: NextFunction): void {
   const { language } = req.body

@@ -1,5 +1,5 @@
 import path from 'path'
-import { DatabaseMain } from '.'
+import { DatabaseMain } from './unessasery-index'
 import { Image } from '../../app/models/image'
 import { urlForStaticImages } from '../common/paths'
 

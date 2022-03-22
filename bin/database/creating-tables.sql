@@ -32,7 +32,7 @@ CREATE TABLE refresh_tokens (
   UNIQUE ( user_id ),
   FOREIGN KEY ( user_id )
     REFERENCES users ( user_id )
-    ON DELETE SET NULL
+    ON DELETE CASCADE
 );
 
 

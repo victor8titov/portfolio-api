@@ -1,5 +1,5 @@
-import { Language } from './types'
-import { DatabaseMain } from '.'
+import { Language } from './unnessasery-types'
+import { DatabaseMain } from './unessasery-index'
 import { HomePage } from '../../app/models/homepage'
 
 export interface HomePageDataInterface {

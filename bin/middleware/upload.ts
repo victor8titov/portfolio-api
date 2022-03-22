@@ -1,9 +1,9 @@
 import { NextFunction } from 'express'
 import multer from 'multer'
 import createError from 'http-errors'
-import { TypeErrors } from '../database/types'
 import path from 'path'
 import { regExpCheckImages, supportedExtensionImages } from '../common/extensions-image'
+import { TypeErrors } from '../../app/models/types'
 
 export const fieldsForUpload = [
   { name: 'name', maxCount: 1 },

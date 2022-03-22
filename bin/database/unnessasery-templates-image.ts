@@ -1,5 +1,5 @@
-import { DatabaseMain } from '.'
-import { TemplateImage } from './types'
+import { DatabaseMain } from './unessasery-index'
+import { TemplateImage } from './unnessasery-types'
 
 export interface TemplatesImagesInterface {
   getTemplatesImages(): Promise<TemplateImage[]>

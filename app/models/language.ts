@@ -1,5 +1,5 @@
 import { Client } from 'pg'
-import { Language } from '../../bin/database/types'
+import { Language } from './types'
 
 export async function getLanguages (): Promise<Language[]> {
   const _db = new Client()

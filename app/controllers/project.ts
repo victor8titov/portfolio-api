@@ -1,11 +1,11 @@
 import express, { NextFunction } from 'express'
 import { validationResult, ValidationError, Result } from 'express-validator'
-import { Language } from '../../bin/database/types'
 import createError from 'http-errors'
 import { getImagesByProjectId } from '../models/image'
 import { getLanguages } from '../models/language'
 import * as model from '../models/project'
 import { ProjectListWithPagination } from '../models/project'
+import { Language } from '../models/types'
 
 export async function create (req: express.Request, res: express.Response, next: NextFunction) {
   try {

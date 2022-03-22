@@ -2,7 +2,7 @@ import express, { NextFunction } from 'express'
 import createError from 'http-errors'
 import { query } from 'express-validator'
 import { getListImagesId } from '../../app/models/image'
-import { Language } from '../../bin/database/types'
+import { Language } from '../../app/models/types'
 
 export const validateLanguage = [
   query('language', 'Query language is wrong, it can be string and length 5')

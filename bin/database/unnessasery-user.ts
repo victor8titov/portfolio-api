@@ -1,5 +1,5 @@
-import { User } from './types'
-import { DatabaseMain } from '.'
+import { User } from './unnessasery-types'
+import { DatabaseMain } from './unessasery-index'
 
 export interface UserDataInterface {
   getUserById(userId: string): Promise<User | undefined>

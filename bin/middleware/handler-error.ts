@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { Result, ValidationError, validationResult } from 'express-validator'
-import { ErrorBody } from '../database/types'
+import { ErrorBody } from '../../app/models/types'
 
 // TODO need again see in system errors and handlers and then remove this code
 // export function errorHandler (err: HttpError, req: Request, res: Response, next: NextFunction) {

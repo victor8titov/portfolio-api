@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
-import { Result, ValidationError, validationResult } from 'express-validator'
 import createError from 'http-errors'
-import { deleteRefreshTokenByUserName, generateRefreshToken, generateToken, getPayloadToken, getRefreshToken, validPassword, validToken } from '../models/auth'
+import { deleteRefreshTokenByUserName, generateRefreshToken, generateToken, getPayloadToken, getRefreshToken, validatePassword } from '../models/auth'
 import { getUserById, getUserByName } from '../models/user'
 
 export async function login (req: Request, res: Response, next: NextFunction) {
@@ -15,7 +14,7 @@ export async function login (req: Request, res: Response, next: NextFunction) {
       return next(createError(400, message))
     }
 
-    const _checking = await validPassword(password, _user)
+    const _checking = await validatePassword(password, _user)
     if (!_checking) {
       return next(createError(400, message))
     }
@@ -45,15 +44,6 @@ export async function logout (req: Request, res: Response, next: NextFunction) {
 export async function refreshToken (req: Request, res: Response, next: NextFunction) {
   try {
     const { refreshToken } = req.body
-
-    if (!refreshToken) {
-      return next(createError(400, 'Refresh Token is required!'))
-    }
-
-    const _checkValidToken = await validToken(refreshToken)
-    if (!_checkValidToken.flag) {
-      return next(createError(400, _checkValidToken.message || 'Refresh token not valid'))
-    }
 
     const _payload = await getPayloadToken(refreshToken)
     if (!_payload) {

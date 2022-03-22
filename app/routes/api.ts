@@ -4,8 +4,8 @@ import * as authController from '../controllers/auth'
 import * as uploadControllers from '../controllers/upload'
 import * as imageControllers from '../controllers/image'
 import * as projectControllers from '../controllers/project'
-import * as middlewareProject from '../../bin/middleware/projects'
-import * as middlewareHomePage from '../../bin/middleware/homepage'
+import { validate as validateProjects } from '../../bin/middleware/projects'
+import { validate as validateHomepage } from '../../bin/middleware/homepage'
 import { auth, validate as validateAuth } from '../../bin/middleware/auth'
 import createError from 'http-errors'
 import { uploadImage } from '../../bin/middleware/upload'
@@ -15,34 +15,34 @@ const router = express.Router()
 
 router.get('/auth/login', validateAuth('login'), authController.login)
 router.get('/auth/logout', validateAuth('logout'), authController.logout)
-router.post('/auth/refresh-token', authController.refreshToken)
+router.post('/auth/refresh-token', validateAuth('refreshToken'), authController.refreshToken)
 
-router.get('/homepage', middlewareHomePage.validate('read'), homepage.read)
-router.post('/homepage', auth, middlewareHomePage.validate('create'), homepage.create)
-router.put('/homepage', auth, middlewareHomePage.validate('update'), homepage.update)
+router.get('/homepage', validateHomepage('read'), homepage.read)
+router.post('/homepage', auth, validateHomepage('create'), homepage.create)
+router.put('/homepage', auth, validateHomepage('update'), homepage.update)
 
 /* goal Project */
 router.get('/projects',
-  middlewareProject.validate('getProjects'),
+  validateProjects('getProjects'),
   projectControllers.getProjects
 )
 router.post('/projects',
   auth,
-  middlewareProject.validate('create'),
+  validateProjects('create'),
   projectControllers.create
 )
 router.get('/project/:projectId',
-  middlewareProject.validate('getById'),
+  validateProjects('getById'),
   projectControllers.getProject
 )
 router.put('/project/:projectId',
   auth,
-  middlewareProject.validate('put'),
+  validateProjects('put'),
   projectControllers.update
 )
 router.delete('/project/:projectId',
   auth,
-  middlewareProject.validate('delete'),
+  validateProjects('delete'),
   projectControllers.deleteProject)
 
 router.post('/upload/image', auth, uploadImage, uploadControllers.uploadImage)

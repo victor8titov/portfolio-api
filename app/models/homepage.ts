@@ -1,7 +1,6 @@
 import { Client } from 'pg'
-import { Language, OptionsRequest } from '../../bin/database/types'
 import { Image } from './image'
-import { ObjectWithLanguage } from './types'
+import { Language, ObjectWithLanguage, OptionsRequest } from './types'
 
 type HomepageLineDB = {
   title: string

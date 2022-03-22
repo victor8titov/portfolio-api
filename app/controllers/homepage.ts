@@ -1,10 +1,10 @@
 import express, { NextFunction } from 'express'
-import { Language } from '../../bin/database/types'
 import { createHomePage, getHomePage, HomePage, updateHomePage } from '../models/homepage'
 import createError from 'http-errors'
 import { getAvatars, updateAvatar } from '../models/image'
 import { getLanguages } from '../models/language'
 import { Result, ValidationError, validationResult } from 'express-validator'
+import { Language } from '../models/types'
 
 export async function read (req: express.Request, res: express.Response, next: NextFunction) {
   try {

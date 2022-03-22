@@ -1,11 +1,13 @@
-import { RefreshToken } from './types'
-import { DatabaseMain } from '.'
+import { RefreshToken } from './unnessasery-types'
+import { DatabaseMain } from './unessasery-index'
 
 export interface AuthDataInterface {
-  getRefreshToken(tokenId: string): Promise<RefreshToken | undefined>
-  createRefreshToken(token: RefreshToken): Promise<void>
   updateRefreshToken(token: RefreshToken): Promise<void>
+  getRefreshToken(tokenId: string): Promise<RefreshToken | undefined>
   deleteRefreshTokenByUserName(userName: string): Promise<void>
+  
+  
+  createRefreshToken(token: RefreshToken): Promise<void>
 }
 
 export class AuthData extends DatabaseMain implements AuthDataInterface {

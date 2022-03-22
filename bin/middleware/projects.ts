@@ -7,7 +7,7 @@ import { getNameProjects } from '../../app/models/project'
 import { validateImagesId, validateLanguage, validatePagination } from './validate-common'
 import { repeatCheck } from '../common/check-repeat'
 
-export function validate (method: string): (ValidationChain | RequestHandler)[] {
+export function validate (method: 'create' | 'getById' | 'getProjects' | 'put' | 'delete'): (ValidationChain | RequestHandler)[] {
   switch (method) {
     case 'create': {
       return [
