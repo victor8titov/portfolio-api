@@ -2,15 +2,6 @@ import { Request, Response, NextFunction } from 'express'
 import { Result, ValidationError, validationResult } from 'express-validator'
 import { ErrorBody } from '../../app/models/types'
 
-// TODO need again see in system errors and handlers and then remove this code
-// export function errorHandler (err: HttpError, req: Request, res: Response, next: NextFunction) {
-//   res.status(err.status || 500).json({
-//     ...(err.source ? { source: err.source } : {}),
-//     ...(err.type ? { type: err.type } : {}),
-//     message: err.message || 'Internal Server Error'
-//   })
-// }
-
 export function validationErrorHandler (req: Request, res: Response, next: NextFunction) {
   const errors: Result<ValidationError> = validationResult(req)
 
