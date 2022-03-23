@@ -64,12 +64,8 @@ paths:
             schema: 
               $ref: '#/components/schemas/SocialMedia'
       responses:
-        200: 
-          description: Entity Social Media created successful
-          content:
-            application/json:
-              schema: 
-                $ref: 'api-doc.yaml#/components/schemas/2XX'    
+        200:
+          $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'  
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500: 
@@ -126,11 +122,7 @@ paths:
               $ref: '#/components/schemas/SocialMedia'
       responses:
         200:
-          description: Social media is changed successful
-          content:
-            application/json:
-              schema: 
-               $ref: 'api-doc.yaml#/components/schemas/2XX'
+          $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500: 
@@ -147,12 +139,8 @@ paths:
           required: true
           description: desc 
       responses:
-        200: 
-          description: Entity Social media deleted successful
-          content:
-            application/json:
-              schema: 
-                $ref: 'api-doc.yaml#/components/schemas/Deleted'
+        200:
+          $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500: 

@@ -32,11 +32,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/JwtToken"
         400:
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: 'api-doc.yaml#/components/schemas/4XX'
+          $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
           $ref: 'api-doc.yaml#/components/responses/5XX'
   /auth/logout:
@@ -67,11 +63,7 @@ paths:
                     username: admin
                     message: The user came out of the system
         400:
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: 'api-doc.yaml#/components/schemas/4XX'
+          $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
           $ref: 'api-doc.yaml#/components/responses/5XX'
   /auth/refresh-token:
@@ -101,11 +93,7 @@ paths:
                 schema:
                   $ref: "#/components/schemas/JwtToken"
         400:
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: 'api-doc.yaml#/components/schemas/4XX'
+          $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
           $ref: 'api-doc.yaml#/components/responses/5XX'
 

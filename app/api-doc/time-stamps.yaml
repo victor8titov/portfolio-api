@@ -71,11 +71,7 @@ paths:
               $ref: '#/components/schemas/TimeStamps'
       responses:
         200:
-          description: The timestamp was created successfully
-          content:
-            application/json:
-              schema: 
-                $ref: 'api-doc.yaml#/components/schemas/2XX'
+          $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500: 
@@ -126,11 +122,7 @@ paths:
               $ref: '#/components/schemas/TimeStamps'
       responses:
         200:
-          description: Time stamp is changed successful
-          content:
-            application/json:
-              schema: 
-               $ref: 'api-doc.yaml#/components/schemas/2XX'
+          $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500: 
@@ -147,12 +139,8 @@ paths:
           required: true
           description: desc 
       responses:
-        200: 
-          description: Entity Time stamp deleted successful
-          content:
-            application/json:
-              schema: 
-                $ref: 'api-doc.yaml#/components/schemas/Deleted'
+        200:
+          $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500: 

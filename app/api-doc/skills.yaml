@@ -12,6 +12,25 @@ paths:
       tags:
         - skills
       description: Get a list of skills
+      parameters:
+        - in: query
+          name: page 
+          schema: 
+            type: number
+          example: 2
+        - in: query
+          name: pageSize
+          schema:
+            type: number
+          example: 10
+        - in: query
+          name: sort
+          schema:
+            $ref: 'api-doc.yaml#/components/schemas/Sort'
+        - in: query
+          name: language
+          schema:
+            $ref: 'api-doc.yaml#/components/schemas/Language'
       responses:
         200:
           description: successfully received a list of skills
@@ -23,27 +42,18 @@ paths:
                   - items
                 properties:
                   pagination:
-                    $ref: "api-doc.yaml#/components/schemas/PaginationInResponse"
+                    $ref: 'api-doc.yaml#/components/schemas/PaginationInResponse'
                   sorted:
                     type: string
                     example: '+name,-group'
                   items:
                     type: array
                     items:
-                      allOf:
-                        - type: object
-                          required:
-                            - id
-                          properties:
-                            id: 
-                              type: string
-                          example: 
-                            id: 10
-                        - $ref: '#/components/schemas/SkillView'
+                      $ref: '#/components/schemas/SkillView'
         400:
-          $ref: "api-doc.yaml#/components/responses/4XX"
+          $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
-          $ref: "api-doc.yaml#/components/responses/5XX"
+          $ref: 'api-doc.yaml#/components/responses/5XX'
     post: 
       tags:
         - skills  
@@ -53,28 +63,14 @@ paths:
         content:
           application/json:
             schema: 
-              $ref: "#/components/schemas/SkillCreation"
+              $ref: '#/components/schemas/SkillCreation'
       responses:
         200:
-          description: Successful creating experience
-          content:
-            application/json:
-              schema: 
-                type: object
-                properties:
-                  id: 
-                    type: string
-                  message: 
-                    type: string
-                required:
-                  - id
-                example:
-                  id: 1
-                  message: Successful creating experience
+          $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400: 
-          $ref: "api-doc.yaml#/components/responses/4XX"
+          $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
-          $ref: "api-doc.yaml#/components/responses/5XX"
+          $ref: 'api-doc.yaml#/components/responses/5XX'
  
   /skills/{id}:
     get:
@@ -91,27 +87,18 @@ paths:
         - in: query
           name: language
           schema:
-            $ref: "api-doc.yaml#/components/schemas/Language"
+            $ref: 'api-doc.yaml#/components/schemas/Language'
       responses:
         200:
           description: Object experience received successfully 
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      id:
-                        type: string
-                    required:
-                      - id
-                    example: 
-                      id: 10
-                  - $ref: '#/components/schemas/SkillView'                 
+                $ref: '#/components/schemas/SkillView'                 
         400:
-          $ref: "api-doc.yaml#/components/responses/4XX"
+          $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
-          $ref: "api-doc.yaml#/components/responses/5XX"
+          $ref: 'api-doc.yaml#/components/responses/5XX'
     put:
       tags:
         - skills
@@ -128,28 +115,14 @@ paths:
         content:
           application/json:
             schema: 
-              $ref: "#/components/schemas/SkillCreation"
+              $ref: '#/components/schemas/SkillCreation'
       responses:
         200:
-          description: Object skill received successfully 
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  message: 
-                    type: string
-                required:
-                  - id
-                example: 
-                  id: 10
-                  message: Object skill received successfully
+          $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
-          $ref: "api-doc.yaml#/components/responses/4XX"
+          $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
-          $ref: "api-doc.yaml#/components/responses/5XX"
+          $ref: 'api-doc.yaml#/components/responses/5XX'
     delete:
       tags:
         - skills
@@ -163,53 +136,61 @@ paths:
           description: desc 
       responses:
         200:
-          description: Object skill deleted successfully 
-          content:
-            application/json:
-              schema:
-                $ref: "api-doc.yaml#/components/schemas/Deleted"
+          $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
-          $ref: "api-doc.yaml#/components/responses/4XX"
+          $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
-          $ref: "api-doc.yaml#/components/responses/5XX"
+          $ref: 'api-doc.yaml#/components/responses/5XX'
 
  
   
 components:
   schemas:
-    SkillCreation:
+    SkillCommon:
       type: object
       properties:
         name: 
-          $ref: "api-doc.yaml#/components/schemas/StringWithDivisionIntoLanguages"
-        description:
-          $ref: "api-doc.yaml#/components/schemas/StringWithDivisionIntoLanguages"
-      
-            
-    SkillView:
-      type: object
-      properties:
-        languages: 
-          $ref: "api-doc.yaml#/components/schemas/Languages"
-        currentLanguage: 
-          $ref: "api-doc.yaml#/components/schemas/Language"
-        name:
           type: string
-        description:
-          type: string
+          example: JavaScript
         group: 
           type: string
+          example: language
         icon:
           type: string
+          format: binary
+          example: TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCB...
         level:
           type: number
           maximum: 10
           minimum: 0
-      example:
-        languages: ['en', 'ru']
-        currentLanguage: 'en'
-        name: css3
-        description: I know this technology ...
-        group: styles
-        icon: url icon
-        level: 5
+          example: 5
+      required:
+        - name
+
+
+    SkillCreation:
+      allOf:
+        - $ref: '#/components/schemas/SkillCommon'
+        - type: object
+          properties:
+            description:
+              $ref: 'api-doc.yaml#/components/schemas/StringWithDivisionIntoLanguages'
+
+            
+    SkillView:
+      allOf:
+        - $ref: '#/components/schemas/SkillCommon'
+        - type: object
+          properties:
+            id:
+              type: string
+              example: 10
+            languages: 
+              $ref: 'api-doc.yaml#/components/schemas/Languages'
+            currentLanguage: 
+              $ref: 'api-doc.yaml#/components/schemas/Language'
+            description:
+              type: string
+              example: text about this skill 
+        
+     
