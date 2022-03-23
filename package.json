@@ -7,7 +7,8 @@
     "start": "nodemon ./bin/www.ts",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --ext .ts --fix",
-    "build": "tsc"
+    "build": "tsc",
+    "bundle-openapi": "swagger-cli bundle ./bin/openapi/api-doc.yaml --outfile ./bin/openapi/bundle-doc.yaml --type yaml"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",

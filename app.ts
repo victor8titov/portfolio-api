@@ -12,7 +12,7 @@ import './bin/config/passport-jwt-strategy'
 import { routersForStatic } from './app/routes/static'
 import { errorHandler } from './bin/middleware/handler-error'
 
-const swaggerDocument = YAML.load('./app/api-doc/api-doc.yaml')
+const swaggerDocument = YAML.load(path.resolve(__dirname, './bin/openapi/bundle-doc.yaml'))
 
 const app = express()
 
