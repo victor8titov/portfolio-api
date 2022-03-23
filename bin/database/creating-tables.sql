@@ -45,6 +45,7 @@ CREATE TABLE projects (
   type VARCHAR(30) NOT NULL DEFAULT '',
   stack VARCHAR(30)[] NOT NULL DEFAULT '{}',
   spend_time VARCHAR(100) NOT NULL DEFAULT '',
+  release_date DATE DEFAULT NULL,
   PRIMARY KEY ( project_id ),
   UNIQUE ( name )
 );

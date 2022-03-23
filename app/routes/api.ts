@@ -23,28 +23,11 @@ router.post('/homepage', auth, validateHomepage('create'), homepage.create)
 router.put('/homepage', auth, validateHomepage('update'), homepage.update)
 
 /* goal Project */
-router.get('/projects',
-  validateProjects('getProjects'),
-  projectControllers.getProjects
-)
-router.post('/projects',
-  auth,
-  validateProjects('create'),
-  projectControllers.create
-)
-router.get('/project/:projectId',
-  validateProjects('getById'),
-  projectControllers.getProject
-)
-router.put('/project/:projectId',
-  auth,
-  validateProjects('put'),
-  projectControllers.update
-)
-router.delete('/project/:projectId',
-  auth,
-  validateProjects('delete'),
-  projectControllers.deleteProject)
+router.get('/projects', validateProjects('getProjects'), projectControllers.getProjects)
+router.post('/projects', auth, validateProjects('create'), projectControllers.create)
+router.get('/project/:projectId', validateProjects('getById'), projectControllers.getProject)
+router.put('/project/:projectId', auth, validateProjects('put'), projectControllers.update)
+router.delete('/project/:projectId', auth, validateProjects('delete'), projectControllers.deleteProject)
 
 router.post('/upload/image', auth, uploadImage, uploadControllers.uploadImage)
 

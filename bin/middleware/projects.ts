@@ -3,7 +3,7 @@ import escape from 'validator/lib/escape'
 import { body, ValidationChain, query, param } from 'express-validator'
 import createError from 'http-errors'
 import { getLanguages } from '../../app/models/language'
-import { getNameProjects } from '../../app/models/project'
+import { getNameProjects, ProjectStatuses } from '../../app/models/project'
 import { validateImagesId, validateLanguage, validatePagination } from './validate-common'
 import { repeatCheck } from '../common/check-repeat'
 import { validationErrorHandler } from './handler-error'
@@ -70,6 +70,13 @@ const validateBody = [
     }
     return value
   }),
+  body('events').optional().custom(value => Array.isArray(value) &&
+  value.every((item: any) =>
+    item.date &&
+    item.status &&
+    typeof item.date === 'string' &&
+    typeof item.status === 'string' &&
+    Object.values(ProjectStatuses).some(i => i === item.status))),
   body('links').optional().custom(value => Array.isArray(value) &&
     value.every((item: any) =>
       item.name &&

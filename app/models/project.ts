@@ -1,21 +1,26 @@
 import { Client } from 'pg'
 import { urlForStaticImages } from '../../bin/common/paths'
 import { Image } from './image'
-import { Language, OptionsRequest } from './types'
+import { Language, ObjectWithLanguage, OptionsRequest } from './types'
 
 export type Link = {
   readonly name: string
   readonly link: string
 }
 
+export enum ProjectStatuses {
+  RELEASE = 'release'
+}
+
 export type Project = {
-  readonly name: string | null
-  readonly description: { [ key: string]: string }
-  readonly type: string | null
-  readonly spendTime: string | null
-  readonly stack: string[] | null
-  readonly links: Link[] | null
-  readonly imagesId?: string[] | null
+  readonly name: string
+  readonly description: ObjectWithLanguage
+  readonly type: string
+  readonly spendTime: string
+  readonly events: { date: string, status: ProjectStatuses }[]
+  readonly stack: string[]
+  readonly links: Link[]
+  readonly imagesId?: string[]
   readonly currentLanguage?: Language
   readonly languages?: Language[]
   readonly id?: string
@@ -61,19 +66,21 @@ export async function createProject (project: ProjectRequest): Promise<string> {
       description,
       type = '',
       spendTime = '',
+      events = [],
       stack,
       links,
       imagesId
     } = project
+    const releaseDate = events.find(i => i.status === ProjectStatuses.RELEASE)?.date || null
 
     await db.connect()
 
     await db.query('BEGIN;')
 
     const { rows } = await db.query(`
-      INSERT INTO projects (name, type, stack, spend_time)
+      INSERT INTO projects (name, type, stack, spend_time, release_date)
         VALUES 
-          ('${name}', '${type}', '{${stack?.join(', ') || ''}}', '${spendTime}')
+          ('${name}', '${type}', '{${stack?.join(', ') || ''}}', '${spendTime}', ${releaseDate ? "'" + releaseDate + "'" : null})
           RETURNING *;
     `)
     const _projectId: string = rows.shift().project_id
@@ -86,7 +93,7 @@ export async function createProject (project: ProjectRequest): Promise<string> {
     if (description) {
       const _languages = Object.keys(description)
 
-      const _values = _languages.map((_language) => `('${_projectId}', '${_language}', '${description[_language] || null}')`)
+      const _values = _languages.map((_language) => `('${_projectId}', '${_language}', '${description[_language as Language] || null}')`)
 
       await db.query(`
         INSERT INTO projects_multilanguge_content (project_id, language, description)
@@ -129,7 +136,7 @@ export async function getProjectById (projectId: string, language: Language): Pr
     await db.connect()
 
     const { rows } = await db.query(`
-      SELECT name, type, stack, spend_time FROM projects 
+      SELECT name, type, stack, spend_time, release_date as release FROM projects 
         WHERE project_id = '${projectId}';
     `)
 
@@ -151,8 +158,16 @@ export async function getProjectById (projectId: string, language: Language): Pr
     `)
     const links = _linksRows.rows || []
 
-    const { name, type, stack, spend_time: spendTime } = _project
-    return { name, description, type, spendTime, stack, links }
+    const { name, type, stack, spend_time: spendTime, release } = _project
+    return {
+      name,
+      description,
+      type,
+      spendTime,
+      events: release ? [{ date: release, status: ProjectStatuses.RELEASE }] : [],
+      stack,
+      links
+    }
   } catch (e: any) {
     console.error(e)
     throw e
@@ -189,7 +204,7 @@ export async function getProjects (option: OptionsRequest): Promise<ProjectRespo
     await db.connect()
 
     const { rows: _projects } = await db.query(`
-      SELECT project_id as id, name, type, stack, spend_time FROM projects 
+      SELECT project_id as id, name, type, stack, spend_time, release_date as release FROM projects 
       ${order ? 'ORDER BY ' + order : 'ORDER BY project_id'}
       ${pageSize && page ? 'LIMIT ' + pageSize : ''}
       ${pageSize && page ? 'OFFSET ' + ((page - 1) * pageSize) : ''}
@@ -197,7 +212,7 @@ export async function getProjects (option: OptionsRequest): Promise<ProjectRespo
 
     const _result = []
     for (const _project of _projects) {
-      const { id, name, type, stack, spend_time: spendTime } = _project
+      const { id, name, type, stack, spend_time: spendTime, release } = _project
 
       const _contentDependFromLanguage = await db.query(`
       SELECT description from projects_multilanguge_content
@@ -226,7 +241,8 @@ export async function getProjects (option: OptionsRequest): Promise<ProjectRespo
         url: `${urlForStaticImages}/${item.name}`
       })) || []
 
-      _result.push({ id, name, description, type, spendTime, stack, links, images })
+      const events = release ? [{ date: release, status: ProjectStatuses.RELEASE }] : []
+      _result.push({ id, name, description, type, spendTime, events, stack, links, images })
     }
 
     return _result
@@ -246,10 +262,12 @@ export async function updateProject (project: ProjectRequest, projectId: string)
       description,
       type = '',
       spendTime = '',
+      events = [],
       stack,
       links,
       imagesId
     } = project
+    const releaseDate = events.find(i => i.status === ProjectStatuses.RELEASE)?.date
 
     await db.connect()
 
@@ -260,7 +278,8 @@ export async function updateProject (project: ProjectRequest, projectId: string)
         name = '${name}',
         type = '${type}',
         stack = '{${stack?.join(', ') || ''}}',
-        spend_time = '${spendTime}'
+        spend_time = '${spendTime}',
+        release_date = ${releaseDate ? "'" + releaseDate + "'" : null}
         WHERE project_id = ${projectId};
     `)
 
@@ -272,7 +291,7 @@ export async function updateProject (project: ProjectRequest, projectId: string)
     if (description) {
       const _languages = Object.keys(description)
 
-      const _values = _languages.map((_language) => `('${projectId}', '${_language}', '${description[_language] || null}')`)
+      const _values = _languages.map((_language) => `('${projectId}', '${_language}', '${description[_language as Language] || null}')`)
 
       await db.query(`
         INSERT INTO projects_multilanguge_content (project_id, language, description)

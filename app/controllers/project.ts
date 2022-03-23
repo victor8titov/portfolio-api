@@ -1,5 +1,4 @@
 import express, { NextFunction } from 'express'
-import { validationResult, ValidationError, Result } from 'express-validator'
 import createError from 'http-errors'
 import { getImagesByProjectId } from '../models/image'
 import { getLanguages } from '../models/language'
@@ -77,7 +76,7 @@ export async function getProjects (req: express.Request, res: express.Response, 
       const _count = await model.getCountProjects()
       const totalPages = Math.ceil(_count / pageSize)
 
-      if (page > totalPages) next(createError(400, 'Page number outside', { source: 'Param page' }))
+      if (page > totalPages) return next(createError(400, 'Page number outside', { source: 'Param page' }))
 
       _result.pagination = {
         page,

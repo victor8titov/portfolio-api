@@ -1020,6 +1020,26 @@ components:
         bearerFormat: JWT
 
   schemas:
+    Events:
+      type: array
+      items: 
+        type: object
+        properties:
+          date: 
+            type: string
+          status:
+            type: string
+            format: enum
+              - release
+        required:
+          - date
+          - status
+      example: [
+        {
+          date: '2022-11-11',
+          status: 'release',
+        }
+      ]
     StringWithDivisionIntoLanguages:
       type: object
       properties:
@@ -1269,6 +1289,8 @@ components:
             type: string
         spendTime: 
           type: string
+        events:
+          $ref: "#/components/schemas/Events"
         imagesId:
           type: array
           items:
@@ -1293,6 +1315,12 @@ components:
         type: template
         stack: ['html', 'css']
         spendTime: '2 days'
+        events: [
+          {
+            date: '2222-11-11',
+            status: 'release',
+          }
+        ]
         links: [
           {
             name: 'github',
@@ -1326,6 +1354,8 @@ components:
             type: string
         spendTime: 
           type: string
+        events:
+          $ref: "#/components/schemas/Events"
         images:
           type: array
           items:
@@ -1360,6 +1390,12 @@ components:
         type: template
         stack: ['html', 'css']
         spendTime: 'time'
+        events: [
+          {
+            date: '2222-11-11',
+            status: 'release',
+          }
+        ]
         links: [
           {
             name: 'github',
