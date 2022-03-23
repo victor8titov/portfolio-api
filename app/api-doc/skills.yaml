@@ -1,0 +1,215 @@
+openapi: 3.0.0
+info:
+  title: Skills
+  version: 0.0.1
+tags:
+  - name: skills
+    description: Skills which has the site owner
+
+paths:
+  /skills:
+    get:
+      tags:
+        - skills
+      description: Get a list of skills
+      responses:
+        200:
+          description: successfully received a list of skills
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                properties:
+                  pagination:
+                    $ref: "api-doc.yaml#/components/schemas/PaginationInResponse"
+                  sorted:
+                    type: string
+                    example: '+name,-group'
+                  items:
+                    type: array
+                    items:
+                      allOf:
+                        - type: object
+                          required:
+                            - id
+                          properties:
+                            id: 
+                              type: string
+                          example: 
+                            id: 10
+                        - $ref: '#/components/schemas/SkillView'
+        400:
+          $ref: "api-doc.yaml#/components/responses/4XX"
+        500:
+          $ref: "api-doc.yaml#/components/responses/5XX"
+    post: 
+      tags:
+        - skills  
+      description: Creating a new skill
+      requestBody:
+        description: Structure of new experience
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/SkillCreation"
+      responses:
+        200:
+          description: Successful creating experience
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  id: 
+                    type: string
+                  message: 
+                    type: string
+                required:
+                  - id
+                example:
+                  id: 1
+                  message: Successful creating experience
+        400: 
+          $ref: "api-doc.yaml#/components/responses/4XX"
+        500:
+          $ref: "api-doc.yaml#/components/responses/5XX"
+ 
+  /skills/{id}:
+    get:
+      tags:
+        - skills
+      description: Get one entities skill by ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
+        - in: query
+          name: language
+          schema:
+            $ref: "api-doc.yaml#/components/schemas/Language"
+      responses:
+        200:
+          description: Object experience received successfully 
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                    required:
+                      - id
+                    example: 
+                      id: 10
+                  - $ref: '#/components/schemas/SkillView'                 
+        400:
+          $ref: "api-doc.yaml#/components/responses/4XX"
+        500:
+          $ref: "api-doc.yaml#/components/responses/5XX"
+    put:
+      tags:
+        - skills
+      description: Change one entities skill by ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
+      requestBody:
+        description: Modified object experience
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/SkillCreation"
+      responses:
+        200:
+          description: Object skill received successfully 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  message: 
+                    type: string
+                required:
+                  - id
+                example: 
+                  id: 10
+                  message: Object skill received successfully
+        400:
+          $ref: "api-doc.yaml#/components/responses/4XX"
+        500:
+          $ref: "api-doc.yaml#/components/responses/5XX"
+    delete:
+      tags:
+        - skills
+      description: Delete one entities skill by ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
+      responses:
+        200:
+          description: Object skill deleted successfully 
+          content:
+            application/json:
+              schema:
+                $ref: "api-doc.yaml#/components/schemas/Deleted"
+        400:
+          $ref: "api-doc.yaml#/components/responses/4XX"
+        500:
+          $ref: "api-doc.yaml#/components/responses/5XX"
+
+ 
+  
+components:
+  schemas:
+    SkillCreation:
+      type: object
+      properties:
+        name: 
+          $ref: "api-doc.yaml#/components/schemas/StringWithDivisionIntoLanguages"
+        description:
+          $ref: "api-doc.yaml#/components/schemas/StringWithDivisionIntoLanguages"
+      
+            
+    SkillView:
+      type: object
+      properties:
+        languages: 
+          $ref: "api-doc.yaml#/components/schemas/Languages"
+        currentLanguage: 
+          $ref: "api-doc.yaml#/components/schemas/Language"
+        name:
+          type: string
+        description:
+          type: string
+        group: 
+          type: string
+        icon:
+          type: string
+        level:
+          type: number
+          maximum: 10
+          minimum: 0
+      example:
+        languages: ['en', 'ru']
+        currentLanguage: 'en'
+        name: css3
+        description: I know this technology ...
+        group: styles
+        icon: url icon
+        level: 5

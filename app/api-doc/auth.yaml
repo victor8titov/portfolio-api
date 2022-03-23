@@ -1,0 +1,127 @@
+openapi: 3.0.0
+info:
+  title: Auth
+  version: 0.0.1
+tags:
+  - name: auth
+    description: Endpoint is for authorization Users
+paths:
+  /auth/login:
+    get:
+      tags:
+        - auth
+      summary: Logs user into the system
+      parameters:
+        - name: username
+          in: query
+          description: The user name for login
+          required: true
+          schema:
+              type: string
+        - name: password
+          in: query
+          description: The password for login in clear text
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JwtToken"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: 'api-doc.yaml#/components/schemas/4XX'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+  /auth/logout:
+    get:
+      tags:
+      - auth
+      summary: Logs out current logged in user session
+      parameters:
+        - in: query
+          name: username
+          description: User's name for logout
+          schema:
+            type: string
+            example: admin
+      responses:
+        200:
+            description: successful operation
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                    username:
+                      type: string
+                  example:
+                    username: admin
+                    message: The user came out of the system
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: 'api-doc.yaml#/components/schemas/4XX'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+  /auth/refresh-token:
+    post:
+      tags:
+      - auth
+      summary: Create new token
+      description: Create new token without login
+      requestBody:
+        description: These are needed to obtain tokens
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken: 
+                  type: string
+                  required:
+                    - refreshToken
+              example:
+                refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+      responses:
+        200:
+            description: successful operation
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/JwtToken"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: 'api-doc.yaml#/components/schemas/4XX'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+
+components:
+  schemas:
+    JwtToken:
+      type: object
+      properties:
+        token:  
+          type: string
+        refreshToken:
+          type: string 
+      required:
+        - token
+        - refreshToken
+      example: 
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+   

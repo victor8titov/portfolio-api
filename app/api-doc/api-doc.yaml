@@ -1,0 +1,241 @@
+openapi: 3.0.0
+info:
+  title: Portfolio REST API
+  description: Api for backend project Portfolio
+  contact:
+    email: victor8titov@yandex.ru
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.0.1
+servers:
+- url: http://localhost:3000/api
+  description: dev server
+
+paths:
+  /auth/login:
+    $ref: 'auth.yaml#/paths/~1auth~1login'
+  /auth/logout:
+    $ref: 'auth.yaml#/paths/~1auth~1logout'
+  /auth/refresh-token:
+    $ref: 'auth.yaml#/paths/~1auth~1refresh-token'
+  /homepage:
+    $ref: 'homepage.yaml#/paths/~1homepage'
+  /projects:
+    $ref: 'projects.yaml#/paths/~1projects'
+  /project/{id}:
+    $ref: 'projects.yaml#/paths/~1project~1{id}'
+  /skills:
+    $ref: 'skills.yaml#/paths/~1skills'
+  /skills/{id}:
+    $ref: 'skills.yaml#/paths/~1skills~1{id}'
+  /time-stamps:
+    $ref: 'time-stamps.yaml#/paths/~1time-stamps'
+  /time-stamps/{id}:
+   $ref: 'time-stamps.yaml#/paths/~1time-stamps~1{id}'
+  /callback:
+   $ref: 'callback.yaml#/paths/~1callback'
+  /social-media:
+    $ref: 'social-media.yaml#/paths/~1social-media'
+  /social-media/{id}:
+    $ref: 'social-media.yaml#/paths/~1social-media~1{id}'
+  /upload/image:
+   $ref: 'upload.yaml#/paths/~1upload~1image'
+  /image/{id}:
+   $ref: 'image.yaml#/paths/~1image~1{id}'
+
+components:
+  securitySchemes:
+      BearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+
+  schemas:
+    Events:
+      type: array
+      items: 
+        type: object
+        properties:
+          date: 
+            type: string
+          status:
+            type: string
+            format: enum
+              - release
+        required:
+          - date
+          - status
+      example: [
+        {
+          date: '2022-11-11',
+          status: 'release',
+        }
+      ]
+
+    StringWithDivisionIntoLanguages:
+      type: object
+      properties:
+        en: 
+          type: string
+        ru:
+          type: string
+      example: {
+        en: 'Text in English',
+        ru: 'Текст на русском языке',
+      }
+
+    Sort: 
+      type: array
+      items:
+        type: string
+      example:
+        ['+name', '-name']
+
+    Language: 
+      type: string
+      enum:
+        - ru
+        - en
+      example: 
+        en
+    
+    Languages:
+      type: array
+      items: 
+        type: string
+        enum:
+          - ru
+          - en
+      example: [ 'en', 'ru']
+    
+    PaginationInRequest:
+      type: object
+      properties:
+        page: 
+          type: number
+          readOnly: true
+        pageSize:
+          type: number
+          readOnly: true
+      example:
+        page: 1
+        pageSize: 10
+    
+    PaginationInResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaginationInRequest"
+        - type: object
+          properties:
+            totalPages: 
+              type: number
+              readOnly: true
+          required:
+            - totalPages
+          example:
+            totalPages: 100
+    
+    Deleted:
+      type: object
+      properties:
+        id:
+          type: string
+        message: 
+          type: string
+      required:
+        - id
+      example: 
+        id: 10
+        message: Object deleted successfully
+
+    2XX:
+      type: object
+      properties:
+        id: 
+          type: string
+        message: 
+          type: string
+      required:
+        - id
+      example:
+        id: 1
+        message: Successful created
+
+    4XX:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                readOnly: true
+              source:
+                type: string
+                readOnly: true
+              type: 
+                type: string  
+                readOnly: true
+      example: { 
+        errors: [ {
+          source: title,
+          type: TYPE_OF_ERROR ,
+          message: Something is going wrong,
+          }
+        ]
+      }
+    
+    5XX:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          readOnly: true
+      example:
+        message: Sorry internal server error
+    
+  responses:
+    4XX:
+      description: Client Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/4XX'
+    
+    403:
+      description: forbidden
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                readOnly: true
+            example:
+              message: Forbidden
+    
+    5XX:
+      description: Internal Server Error
+      content: 
+        application/json:
+          schema:
+            $ref: '#/components/schemas/5XX'
+    
+    UnauthorizedError:
+      description: User unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/4XX'    
+    
+    
+  

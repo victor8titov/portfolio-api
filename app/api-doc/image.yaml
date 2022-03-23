@@ -1,0 +1,113 @@
+openapi: 3.0.0
+info:
+  title: Image
+  version: 0.0.1
+tags:
+  - name: image
+    description: Get information about image and manipulate this image
+paths:
+  /image/{id}:
+    get:
+      tags:
+        - image
+      description: Get information about uploading image
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID for find image
+      responses:
+        200: 
+          description: Successfully receive data about image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
+
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+    delete: 
+      tags:
+        - image
+      description: Delete image from server
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID for find image
+      responses:
+        200: 
+          description: Successfully deleted image
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: 
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - id
+                example:
+                  id: klj009lkc
+                  message: successful deleted
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        401:
+          $ref: 'api-doc.yaml#/components/responses/UnauthorizedError'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+
+components:
+  schemas:
+    Image:
+      type: object
+      properties:
+        id: 
+          type: string
+        items: 
+          type: array
+          items:
+            type: object
+            properties:
+              url: 
+                type: string
+              width: 
+                type: string
+              height:
+                type: string
+              name: 
+                type: string
+              description: 
+                type: string
+              templateName:
+                type: string
+            required:
+              - url
+              - name
+      required:
+        - id
+        - items
+      example:
+        id: ddfdzrn1dw
+        items: [ {
+          name: pic-500x500-mid.png, 
+          templateName: 'mid',
+          width: 500, 
+          height: 500, 
+          description: about this photo text, 
+          url: public/images/pic-500x500-mid.png, 
+          } ]
+
+    

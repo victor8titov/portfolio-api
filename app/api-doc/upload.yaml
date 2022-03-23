@@ -1,0 +1,42 @@
+openapi: 3.0.0
+info:
+  title: Upload
+  version: 0.0.1
+tags:
+  - name: upload
+    description: Upload file
+paths:
+  /upload/image:
+    post:
+      tags:
+        - upload
+      description: upload image
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: binary data
+        content: 
+          multipart/form-data: 
+            schema:            
+              type: object
+              properties:      
+                name:     
+                  type: string
+                description:  
+                  type: string
+                file:
+                  type: string
+                  format: binary
+      responses:
+        200: 
+          description: File successfully upload to server
+          content:
+            application/json:
+              schema:
+                  $ref: 'image.yaml#/components/schemas/Image'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        401:
+          $ref: 'api-doc.yaml#/components/responses/UnauthorizedError'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'

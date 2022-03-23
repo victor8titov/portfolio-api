@@ -1,0 +1,179 @@
+openapi: 3.0.0
+info:
+  title: Social media
+  version: 0.0.1
+tags:
+  - name: social-media
+    description: Management of links for communication with the site owner
+paths:
+  /social-media:
+    get:
+      tags:
+        - social-media
+      description: Get list social media entities
+      parameters:
+        - in: query
+          name: page 
+          schema: 
+            type: number
+          example: 2
+        - in: query
+          name: pageSize
+          schema:
+            type: number
+          example: 10
+        - in: query
+          name: language
+          schema:
+            $ref: 'api-doc.yaml#/components/schemas/Language'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pagination:
+                    $ref: 'api-doc.yaml#/components/schemas/PaginationInResponse'
+                  items:  
+                    type: array
+                    items:
+                      allOf:
+                        - type: object
+                          required:
+                            - id
+                          properties:
+                            id: 
+                              type: string
+                          example:
+                            id: 10
+                        - $ref: '#/components/schemas/SocialMedia'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500: 
+          $ref: 'api-doc.yaml#/components/responses/5XX'    
+    post: 
+      tags:
+        - social-media
+      description: Create new link social media
+      requestBody:
+        description: Data for new link
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/SocialMedia'
+      responses:
+        200: 
+          description: Entity Social Media created successful
+          content:
+            application/json:
+              schema: 
+                $ref: 'api-doc.yaml#/components/schemas/2XX'    
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500: 
+          $ref: 'api-doc.yaml#/components/responses/5XX' 
+  /social-media/{id}:
+    get:
+      tags:
+        - social-media
+      description: Create one of social media
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
+      
+      responses:
+        200: 
+          description: Got Social media entity successful
+          content:
+            application/json:
+              schema: 
+                allOf:
+                  - type: object
+                    properties:
+                      id: 
+                        type: string
+                    required:
+                      - id
+                    example: 
+                      id: 10  
+                  - $ref: '#/components/schemas/SocialMedia'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500: 
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+    put: 
+      tags:
+        - social-media
+      description: Change one the social media
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
+      requestBody:
+        description: New Data for social media
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/SocialMedia'
+      responses:
+        200:
+          description: Social media is changed successful
+          content:
+            application/json:
+              schema: 
+               $ref: 'api-doc.yaml#/components/schemas/2XX'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500: 
+          $ref: 'api-doc.yaml#/components/responses/5XX'    
+    delete:
+      tags:
+        - social-media
+      description: Delete one of Social media
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
+      responses:
+        200: 
+          description: Entity Social media deleted successful
+          content:
+            application/json:
+              schema: 
+                $ref: 'api-doc.yaml#/components/schemas/Deleted'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500: 
+          $ref: 'api-doc.yaml#/components/responses/5XX'       
+ 
+components:
+  schemas:
+    SocialMedia: 
+        type: object
+        properties:
+          name: 
+            type: string
+          link:
+            type: string
+          icon: 
+            type: string
+        required:
+          - link
+        example:
+          name: Github
+          link: http://github.com/victor8titov
+          icon: http://someIcon.com/github.png
+    
+    

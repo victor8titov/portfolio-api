@@ -1,0 +1,19 @@
+openapi: 3.0.0
+info:
+  title: Callback
+  version: 0.0.1
+tags:
+  - name: callback
+    description: Working with feedback form
+paths:
+  /callback:
+    get:
+      tags:
+        - callback
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string

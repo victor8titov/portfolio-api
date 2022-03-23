@@ -1,0 +1,354 @@
+openapi: 3.0.0
+info:
+  title: Projects
+  version: 0.0.1
+tags:
+  - name: projects
+    description: Data on projects who made the owner of the page
+paths:
+  /projects:
+    get:
+      tags:
+        - projects
+      description: Get a list of all projects
+      parameters:
+        - in: query
+          name: page 
+          schema: 
+            type: number
+          example: 2
+        - in: query
+          name: pageSize
+          schema:
+            type: number
+          example: 10
+        - in: query
+          name: sort
+          schema:
+            $ref: 'api-doc.yaml#/components/schemas/Sort'
+        - in: query
+          name: language
+          schema:
+            $ref: 'api-doc.yaml#/components/schemas/Language'
+      responses:
+        200:
+          description: Successfully receive list projects
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pagination:
+                    $ref: 'api-doc.yaml#/components/schemas/PaginationInResponse'
+                  sorted: 
+                    $ref: 'api-doc.yaml#/components/schemas/Sort'
+                  items:
+                    type: array
+                    items:
+                      allOf:
+                      - type: object
+                        required:
+                          - id
+                        properties:
+                          id:
+                            type: string
+                        example:
+                          id: 10
+                      - $ref: '#/components/schemas/ProjectResponse'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+    post:
+      tags:
+        - projects
+      description: Create a new project
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: Data to create an essence project
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+      responses:
+        200:
+          description: Entity project has been successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                  message:
+                    type: string
+                example:
+                  id: 11
+                  message: Entity project has been successfully created
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+  /project/{id}:
+    get:
+      tags:
+        - projects
+      description: Get data on one project
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID for find project
+        - in: query
+          name: language
+          schema:
+            $ref: 'api-doc.yaml#/components/schemas/Language'
+      responses:
+        200: 
+          description: Successfully receive data on one project
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    required:
+                      - id
+                    properties:
+                      id:
+                        type: string
+                    example:
+                      id: 10
+                  - $ref: '#/components/schemas/ProjectResponse'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+    put:
+      tags:
+        - projects
+      description: Change the essence object completely
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Id for find project
+      requestBody:
+        description: New parameters for project
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+      responses:
+        200:
+          description: Project change has passed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                  message: 
+                    type: string
+                example: 
+                  id: 11
+                  message: Project change has passed successfully
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+    delete:
+      tags:
+        - projects
+      description: Delete the project
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Id for find project for delete
+      responses:
+        200:
+          description: Successful deleted the project
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                  message:
+                    type: string
+                example:
+                  id: 10
+                  message: Successful deleted the project
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+
+components:
+  schemas:
+    ProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: object
+          properties:
+            ru:
+              type: string
+            en:
+              type: string
+        type:
+          type: string
+        stack: 
+          type: array
+          items:
+            type: string
+        spendTime: 
+          type: string
+        events:
+          $ref: 'api-doc.yaml#/components/schemas/Events'
+        imagesId:
+          type: array
+          items:
+            type: string
+        links: 
+          type: array
+          items: 
+            type: object
+            properties:
+              name: 
+                type: string
+              link:
+                type: string
+      required:
+        - name
+      example: 
+        name: Organic
+        description: {
+          en: 'description in English',
+          ru: 'description in Russian',
+        }
+        type: template
+        stack: ['html', 'css']
+        spendTime: '2 days'
+        events: [
+          {
+            date: '2222-11-11',
+            status: 'release',
+          }
+        ]
+        links: [
+          {
+            name: 'github',
+            link: 'http://github.com/pupkin/project',
+          },
+          {
+            name: 'live project',
+            link: 'http://somedomain.com',
+          }
+        ]
+        imagesId: [ 
+            rlxkglndl,
+            xldkhsoox,
+        ]       
+    ProjectResponse:
+      type: object
+      properties:
+        languages: 
+          $ref: 'api-doc.yaml#/components/schemas/Languages'
+        currentLanguage: 
+          $ref: 'api-doc.yaml#/components/schemas/Language'
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+        stack: 
+          type: array
+          items:
+            type: string
+        spendTime: 
+          type: string
+        events:
+          $ref: 'api-doc.yaml#/components/schemas/Events'
+        images:
+          type: array
+          items:
+            type: object
+            properties:
+              templateName: 
+                type: string
+              width: 
+                type: number
+              height:
+                type: number
+              url: 
+                type: string
+              description:
+                type: string
+            required:
+              - url
+        links: 
+          type: array
+          items: 
+            type: object
+            properties:
+              name: 
+                type: string
+              link:
+                type: string
+      example: 
+        language: ['en', 'ru']
+        currentLanguage: 'ru'
+        name: Organic
+        description: 'description in Russian'
+        type: template
+        stack: ['html', 'css']
+        spendTime: 'time'
+        events: [
+          {
+            date: '2222-11-11',
+            status: 'release',
+          }
+        ]
+        links: [
+          {
+            name: 'github',
+            link: 'http://github.com/pupkin/project',
+          },
+          {
+            name: 'live project',
+            link: 'http://somedomain.com',
+          }
+        ]
+        images: [
+          { 
+            templateName: 'original', 
+            width: 500, 
+            height: 500, 
+            url: 'public/images/pic-500x500-mid.png', 
+            description: 'Photo is my when I was young',
+          }
+        ]
+    

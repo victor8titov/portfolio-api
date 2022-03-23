@@ -1,0 +1,188 @@
+openapi: 3.0.0
+info:
+  title: Time-stamps
+  version: 0.0.1
+tags:
+  - name: time-stamps
+    description: Career history
+paths:
+  /time-stamps:
+    get:
+      tags:
+        - time-stamps
+      parameters:
+        - in: query
+          name: page 
+          schema: 
+            type: number
+          example: 2
+        - in: query
+          name: pageSize
+          schema:
+            type: number
+          example: 10
+        - in: query
+          name: sort
+          schema:
+            $ref: 'api-doc.yaml#/components/schemas/Sort'
+        - in: query
+          name: language
+          schema:
+            $ref: 'api-doc.yaml#/components/schemas/Language'
+              
+      responses:
+        200:
+          description: Received a list of time points successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pagination:
+                    $ref: 'api-doc.yaml#/components/schemas/PaginationInResponse'
+                  sorted:
+                    $ref: 'api-doc.yaml#/components/schemas/Sort'
+                  items: 
+                    type: array
+                    items:
+                      allOf:
+                        - type: object
+                          required:
+                            - id
+                          properties:
+                            id: 
+                              type: string
+                          example:
+                            id: 10
+                        - $ref: '#/components/schemas/TimeStamps'
+        400: 
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+    post: 
+      tags:
+        - time-stamps
+      description: Create a time stamp
+      requestBody:
+        description: Time label fields
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/TimeStamps'
+      responses:
+        200:
+          description: The timestamp was created successfully
+          content:
+            application/json:
+              schema: 
+                $ref: 'api-doc.yaml#/components/schemas/2XX'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500: 
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+  /time-stamps/{id}:
+    get:
+      tags:
+        - time-stamps
+      description: Get one time stamps
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
+        - in: query
+          name: language
+          schema:
+            $ref: 'api-doc.yaml#/components/schemas/Language'
+      responses:
+        200:
+          description: Successfully received the data on the time stamp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeStamps'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500: 
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+    put: 
+      tags:
+        - time-stamps
+      description: Change one the Time stamp
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
+      requestBody:
+        description: New Data for Time stamp
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/TimeStamps'
+      responses:
+        200:
+          description: Time stamp is changed successful
+          content:
+            application/json:
+              schema: 
+               $ref: 'api-doc.yaml#/components/schemas/2XX'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500: 
+          $ref: 'api-doc.yaml#/components/responses/5XX'    
+    delete:
+      tags:
+        - time-stamps
+      description: Delete one of Time stamp
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc 
+      responses:
+        200: 
+          description: Entity Time stamp deleted successful
+          content:
+            application/json:
+              schema: 
+                $ref: 'api-doc.yaml#/components/schemas/Deleted'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500: 
+          $ref: 'api-doc.yaml#/components/responses/5XX'    
+
+components:
+  schemas:
+    TimeStamps:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        link: 
+          type: string
+        stack:
+          type: array
+          items: 
+            type: string
+        dateStart:
+          type: string  
+          format: date
+        dateEnd:
+          type: string
+          format: date
+      example:
+        name: Компания ООО Петрушка
+        description: Описание как хорошо было в компании
+        link: http://example.com
+        stack: ['css', 'html5', 'javascript']
+        dateStart: 2021-10-10
+        dateEnd: 2022-10-10
