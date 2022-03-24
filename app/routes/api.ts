@@ -16,10 +16,12 @@ import { errorHandler } from '../../bin/middleware/handler-error'
 
 const router = express.Router()
 
+/* goal Authentication */
 router.get('/auth/login', validateAuth('login'), authController.login)
 router.get('/auth/logout', validateAuth('logout'), authController.logout)
 router.post('/auth/refresh-token', validateAuth('refreshToken'), authController.refreshToken)
 
+/* goal Homepage */
 router.get('/homepage', validateHomepage('read'), homepage.read)
 router.post('/homepage', auth, validateHomepage('create'), homepage.create)
 router.put('/homepage', auth, validateHomepage('update'), homepage.update)
@@ -33,10 +35,10 @@ router.delete('/project/:projectId', auth, validateProjects('delete'), projectCo
 
 /* goal Skills */
 router.get('/skills', validateSkills('getSkills'), skillsControllers.getSkills)
-router.post('/skills', validateSkills('create'), skillsControllers.create)
+router.post('/skills', auth, validateSkills('create'), skillsControllers.create)
 router.get('/skill/:skillId', validateSkills('getById'), skillsControllers.getSkill)
-router.put('/skill/:skillId', validateSkills('update'), skillsControllers.update)
-router.delete('/skill/:skillId', validateSkills('delete'), skillsControllers.deleteSkill)
+router.put('/skill/:skillId', auth, validateSkills('update'), skillsControllers.update)
+router.delete('/skill/:skillId', auth, validateSkills('delete'), skillsControllers.deleteSkill)
 
 router.post('/upload/image', auth, uploadImage, uploadControllers.uploadImage)
 

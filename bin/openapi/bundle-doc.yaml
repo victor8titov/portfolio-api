@@ -634,20 +634,6 @@ paths:
       description: Get a list of skills
       parameters:
         - in: query
-          name: page
-          schema:
-            type: number
-          example: 2
-        - in: query
-          name: pageSize
-          schema:
-            type: number
-          example: 10
-        - in: query
-          name: sort
-          schema:
-            $ref: '#/components/schemas/Sort'
-        - in: query
           name: language
           schema:
             $ref: '#/components/schemas/Language'
@@ -661,15 +647,23 @@ paths:
                 required:
                   - items
                 properties:
-                  pagination:
-                    $ref: '#/components/schemas/PaginationInResponse'
-                  sorted:
-                    type: string
-                    example: '+name,-group'
+                  languages:
+                    $ref: '#/components/schemas/Languages'
+                  currentLanguage:
+                    $ref: '#/components/schemas/Language'
+                  groups:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - languages
+                      - styles
+                      - javascript libs
+                      - devops
                   items:
                     type: array
                     items:
-                      $ref: '#/paths/~1skills~1%7Bid%7D/get/responses/200/content/application~1json/schema'
+                      $ref: '#/paths/~1skill~1%7Bid%7D/get/responses/200/content/application~1json/schema'
         '400':
           $ref: '#/components/responses/4XX'
         '500':
@@ -678,6 +672,8 @@ paths:
       tags:
         - skills
       description: Creating a new skill
+      security:
+        - BearerAuth: []
       requestBody:
         description: Structure of new experience
         content:
@@ -692,10 +688,6 @@ paths:
                     group:
                       type: string
                       example: language
-                    icon:
-                      type: string
-                      format: binary
-                      example: TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCB...
                     level:
                       type: number
                       maximum: 10
@@ -712,13 +704,15 @@ paths:
           $ref: '#/components/responses/200AfterSuccessfulChangesEntity'
         '400':
           $ref: '#/components/responses/4XX'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/5XX'
-  '/skills/{id}':
+  '/skill/{id}':
     get:
       tags:
         - skills
-      description: Get one entities skill by ID
+      description: Get one entities skill by Id
       parameters:
         - in: path
           name: id
@@ -743,10 +737,6 @@ paths:
                       id:
                         type: string
                         example: 10
-                      languages:
-                        $ref: '#/components/schemas/Languages'
-                      currentLanguage:
-                        $ref: '#/components/schemas/Language'
                       description:
                         type: string
                         example: text about this skill
@@ -757,7 +747,9 @@ paths:
     put:
       tags:
         - skills
-      description: Change one entities skill by ID
+      description: Change one entities skill by Id
+      security:
+        - BearerAuth: []
       parameters:
         - in: path
           name: id
@@ -776,12 +768,16 @@ paths:
           $ref: '#/components/responses/200AfterSuccessfulChangesEntity'
         '400':
           $ref: '#/components/responses/4XX'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/5XX'
     delete:
       tags:
         - skills
-      description: Delete one entities skill by ID
+      description: Delete one entities skill by Id
+      security:
+        - BearerAuth: []
       parameters:
         - in: path
           name: id
@@ -794,6 +790,8 @@ paths:
           $ref: '#/components/responses/200AfterSuccessfulChangesEntity'
         '400':
           $ref: '#/components/responses/4XX'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/5XX'
   /time-stamps:

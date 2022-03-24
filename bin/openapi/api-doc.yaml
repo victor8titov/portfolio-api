@@ -29,8 +29,8 @@ paths:
     $ref: 'projects.yaml#/paths/~1project~1{id}'
   /skills:
     $ref: 'skills.yaml#/paths/~1skills'
-  /skills/{id}:
-    $ref: 'skills.yaml#/paths/~1skills~1{id}'
+  /skill/{id}:
+    $ref: 'skills.yaml#/paths/~1skill~1{id}'
   /time-stamps:
     $ref: 'time-stamps.yaml#/paths/~1time-stamps'
   /time-stamps/{id}:
