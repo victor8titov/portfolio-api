@@ -4,10 +4,12 @@ import * as authController from '../controllers/auth'
 import * as uploadControllers from '../controllers/upload'
 import * as imageControllers from '../controllers/image'
 import * as projectControllers from '../controllers/project'
+import * as skillsControllers from '../controllers/skills'
 import { validate as validateProjects } from '../../bin/middleware/projects'
 import { validate as validateHomepage } from '../../bin/middleware/homepage'
 import { auth, validate as validateAuth } from '../../bin/middleware/auth'
 import { validate as validateImage } from '../../bin/middleware/image'
+import { validate as validateSkills } from '../../bin/middleware/skills'
 import createError from 'http-errors'
 import { uploadImage } from '../../bin/middleware/upload'
 import { errorHandler } from '../../bin/middleware/handler-error'
@@ -28,6 +30,13 @@ router.post('/projects', auth, validateProjects('create'), projectControllers.cr
 router.get('/project/:projectId', validateProjects('getById'), projectControllers.getProject)
 router.put('/project/:projectId', auth, validateProjects('put'), projectControllers.update)
 router.delete('/project/:projectId', auth, validateProjects('delete'), projectControllers.deleteProject)
+
+/* goal Skills */
+router.get('/skills', validateSkills('getSkills'), skillsControllers.getSkills)
+router.post('/skills', validateSkills('create'), skillsControllers.create)
+router.get('/skill/:skillId', validateSkills('getById'), skillsControllers.getSkill)
+router.put('/skill/:skillId', validateSkills('update'), skillsControllers.update)
+router.delete('/skill/:skillId', validateSkills('delete'), skillsControllers.deleteSkill)
 
 router.post('/upload/image', auth, uploadImage, uploadControllers.uploadImage)
 

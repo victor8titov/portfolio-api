@@ -35,6 +35,20 @@ CREATE TABLE refresh_tokens (
     ON DELETE CASCADE
 );
 
+--- create table homepage ---
+DROP TABLE IF EXISTS homepage CASCADE;
+
+CREATE TABLE homepage (
+  language VARCHAR(5) NOT NULL,
+  title text NOT NULL DEFAULT '',
+  subtitle text NOT NULL DEFAULT '',
+  description text NOT NULL DEFAULT '',
+  PRIMARY KEY (language),
+  FOREIGN KEY ( language )
+    REFERENCES languages ( language )
+    ON DELETE CASCADE
+);
+
 
 --- create table projects
 DROP TABLE IF EXISTS projects CASCADE;
@@ -79,17 +93,38 @@ CREATE TABLE links (
     ON DELETE CASCADE
 );
 
---- create table homepage ---
-DROP TABLE IF EXISTS homepage CASCADE;
+--- table skills
+DROP TABLE IF EXISTS skills;
 
-CREATE TABLE homepage (
+CREATE TABLE skills (
+  skill_id serial NOT NULL,
+  name VARCHAR(500) NOT NULL,
+  skill_group VARCHAR(30) NOT NULL DEFAULT '',
+  level INT NOT NULL DEFAULT 0,
+  PRIMARY KEY ( skill_id ),
+  UNIQUE ( name )
+);
+
+
+--- create table multilingual_content
+DROP TABLE IF EXISTS multilingual_content;
+
+CREATE TABLE multilingual_content (
+  id serial NOT NULL,
   language VARCHAR(5) NOT NULL,
-  title text NOT NULL DEFAULT '',
-  subtitle text NOT NULL DEFAULT '',
-  description text NOT NULL DEFAULT '',
-  PRIMARY KEY (language),
+  project_id INT DEFAULT NULL,
+  skill_id INT DEFAULT NULL,
+  content TEXT NOT NULL DEFAULT '',
+  
+  PRIMARY KEY (id, language),
+  FOREIGN KEY (project_id)
+    REFERENCES projects (project_id)
+    ON DELETE CASCADE,
   FOREIGN KEY ( language )
     REFERENCES languages ( language )
+    ON DELETE CASCADE,
+  FOREIGN KEY (skill_id)
+    REFERENCES skills (skill_id)
     ON DELETE CASCADE
 );
 

@@ -14,20 +14,6 @@ paths:
       description: Get a list of skills
       parameters:
         - in: query
-          name: page 
-          schema: 
-            type: number
-          example: 2
-        - in: query
-          name: pageSize
-          schema:
-            type: number
-          example: 10
-        - in: query
-          name: sort
-          schema:
-            $ref: 'api-doc.yaml#/components/schemas/Sort'
-        - in: query
           name: language
           schema:
             $ref: 'api-doc.yaml#/components/schemas/Language'
@@ -41,11 +27,12 @@ paths:
                 required:
                   - items
                 properties:
-                  pagination:
-                    $ref: 'api-doc.yaml#/components/schemas/PaginationInResponse'
-                  sorted:
-                    type: string
-                    example: '+name,-group'
+                  languages: 
+                    $ref: 'api-doc.yaml#/components/schemas/Languages'
+                  currentLanguage: 
+                    $ref: 'api-doc.yaml#/components/schemas/Language'
+                  groups: 
+                    $ref: '#/components/schemas/Groups'
                   items:
                     type: array
                     items:
@@ -58,6 +45,8 @@ paths:
       tags:
         - skills  
       description: Creating a new skill
+      security:
+        - BearerAuth: []
       requestBody:
         description: Structure of new experience
         content:
@@ -69,14 +58,16 @@ paths:
           $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400: 
           $ref: 'api-doc.yaml#/components/responses/4XX'
+        401:
+          $ref: 'api-doc.yaml#/components/responses/UnauthorizedError'
         500:
           $ref: 'api-doc.yaml#/components/responses/5XX'
  
-  /skills/{id}:
+  /skill/{id}:
     get:
       tags:
         - skills
-      description: Get one entities skill by ID
+      description: Get one entities skill by Id
       parameters:
         - in: path
           name: id
@@ -102,7 +93,9 @@ paths:
     put:
       tags:
         - skills
-      description: Change one entities skill by ID
+      description: Change one entities skill by Id
+      security:
+        - BearerAuth: []
       parameters:
         - in: path
           name: id
@@ -121,12 +114,16 @@ paths:
           $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
+        401:
+          $ref: 'api-doc.yaml#/components/responses/UnauthorizedError'
         500:
           $ref: 'api-doc.yaml#/components/responses/5XX'
     delete:
       tags:
         - skills
-      description: Delete one entities skill by ID
+      description: Delete one entities skill by Id
+      security:
+        - BearerAuth: []
       parameters:
         - in: path
           name: id
@@ -139,6 +136,8 @@ paths:
           $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
+        401:
+          $ref: 'api-doc.yaml#/components/responses/UnauthorizedError'
         500:
           $ref: 'api-doc.yaml#/components/responses/5XX'
 
@@ -146,6 +145,12 @@ paths:
   
 components:
   schemas:
+    Groups: 
+      type: array
+      items:
+        type: string
+      example: [ 'languages', 'styles', 'javascript libs', 'devops']
+
     SkillCommon:
       type: object
       properties:
@@ -155,10 +160,6 @@ components:
         group: 
           type: string
           example: language
-        icon:
-          type: string
-          format: binary
-          example: TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCB...
         level:
           type: number
           maximum: 10
@@ -185,10 +186,6 @@ components:
             id:
               type: string
               example: 10
-            languages: 
-              $ref: 'api-doc.yaml#/components/schemas/Languages'
-            currentLanguage: 
-              $ref: 'api-doc.yaml#/components/schemas/Language'
             description:
               type: string
               example: text about this skill 

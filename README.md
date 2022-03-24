@@ -27,3 +27,8 @@ npm run start
 npm run build
 
 ```
+
+
+TODO
+
+- для мульти языка зарефакторить prjects 

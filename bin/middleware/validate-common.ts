@@ -3,6 +3,7 @@ import createError from 'http-errors'
 import { query } from 'express-validator'
 import { getListImagesId } from '../../app/models/image'
 import { Language } from '../../app/models/types'
+import { getLanguages } from '../../app/models/language'
 
 export const validateLanguage = [
   query('language', 'Query language is wrong, it can be string and length 5')
@@ -34,5 +35,29 @@ export async function validateImagesId (req: express.Request, res: express.Respo
     next()
   } catch (e) {
     next(createError(500, 'Error is during validate images ID'))
+  }
+}
+
+export async function validateLanguageFromDescription (req: express.Request, res: express.Response, next: NextFunction) {
+  try {
+    /* Check languages used in the request */
+    const _useLanguages: string[] | undefined = req.body.description ? Object.keys(req.body.description) : undefined
+
+    if (_useLanguages) {
+      const _supportedLanguages = await getLanguages()
+
+      const _checkingLanguages =
+        _useLanguages.every(_lang => _supportedLanguages.some(
+          _supportedLang => _supportedLang === _lang))
+
+      if (!_checkingLanguages) {
+        const _message = `The language is incorrect in the field description, possible ${_supportedLanguages.join(', ')}`
+        return next(createError(400, _message, { source: 'description' }))
+      }
+    }
+
+    next()
+  } catch (e) {
+    next(createError(500, 'Error is during check languages in description'))
   }
 }

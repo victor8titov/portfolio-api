@@ -2,9 +2,8 @@ import express, { NextFunction, RequestHandler } from 'express'
 import escape from 'validator/lib/escape'
 import { body, ValidationChain, query, param } from 'express-validator'
 import createError from 'http-errors'
-import { getLanguages } from '../../app/models/language'
 import { getNameProjects, ProjectStatuses } from '../../app/models/project'
-import { validateImagesId, validateLanguage, validatePagination } from './validate-common'
+import { validateImagesId, validateLanguage, validateLanguageFromDescription, validatePagination } from './validate-common'
 import { repeatCheck } from '../common/check-repeat'
 import { validationErrorHandler } from './handler-error'
 
@@ -115,30 +114,6 @@ const validateSort = [
       return true
     })
 ]
-
-async function validateLanguageFromDescription (req: express.Request, res: express.Response, next: NextFunction) {
-  try {
-    /* Check languages used in the request */
-    const _useLanguages: string[] | undefined = req.body.description ? Object.keys(req.body.description) : undefined
-
-    if (_useLanguages) {
-      const _supportedLanguages = await getLanguages()
-
-      const _checkingLanguages =
-        _useLanguages.every(_lang => _supportedLanguages.some(
-          _supportedLang => _supportedLang === _lang))
-
-      if (!_checkingLanguages) {
-        const _message = `The language is incorrect in the field description, possible ${_supportedLanguages.join(', ')}`
-        return next(createError(400, _message, { source: 'description' }))
-      }
-    }
-
-    next()
-  } catch (e) {
-    next(createError(500, 'Error is during check languages in description'))
-  }
-}
 
 async function validateName (req: express.Request, res: express.Response, next: NextFunction) {
   try {
