@@ -71,11 +71,28 @@ paths:
 
 components:
   schemas:
+    Icon:
+      type: object
+      properties:
+        id: 
+          type: string
+          example: ddfdzrn1dw
+        url: 
+          type: string
+          example: public/images/pic-500x500-mid.png
+        name: 
+          type: string
+          example: pic-500x500-mid.png, 
+        description: 
+          type: string
+          example: Description about this photo
+        
     Image:
       type: object
       properties:
         id: 
           type: string
+          example: ddfdzrn1dw
         items: 
           type: array
           items:
@@ -83,31 +100,27 @@ components:
             properties:
               url: 
                 type: string
+                example: public/images/pic-500x500-mid.png
               width: 
                 type: string
+                example: 500
               height:
                 type: string
+                example: 500
               name: 
                 type: string
+                example: pic-500x500-mid.png, 
               description: 
                 type: string
+                example: Description about this photo
               templateName:
                 type: string
+                example: mid
             required:
               - url
               - name
       required:
         - id
         - items
-      example:
-        id: ddfdzrn1dw
-        items: [ {
-          name: pic-500x500-mid.png, 
-          templateName: 'mid',
-          width: 500, 
-          height: 500, 
-          description: about this photo text, 
-          url: public/images/pic-500x500-mid.png, 
-          } ]
 
     

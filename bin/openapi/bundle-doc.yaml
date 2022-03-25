@@ -955,36 +955,48 @@ paths:
         '500':
           $ref: '#/components/responses/5XX'
   /callback:
-    get:
+    post:
       tags:
         - callback
+      description: Send callback form
+      requestBody:
+        description: Structure of new experience
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: mymail@mail.com
+                message:
+                  type: string
+                  example: 'Hello, I want you offer interesting idea about ...'
+              required:
+                - email
+                - message
       responses:
         '200':
-          description: OK
+          description: Message is received
           content:
             application/json:
               schema:
-                type: string
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Your message is received and nearest time I answer you
+                required:
+                  - message
+        '400':
+          $ref: '#/components/responses/4XX'
+        '500':
+          $ref: '#/components/responses/5XX'
   /social-media:
     get:
       tags:
         - social-media
       description: Get list social media entities
-      parameters:
-        - in: query
-          name: page
-          schema:
-            type: number
-          example: 2
-        - in: query
-          name: pageSize
-          schema:
-            type: number
-          example: 10
-        - in: query
-          name: language
-          schema:
-            $ref: '#/components/schemas/Language'
       responses:
         '200':
           description: OK
@@ -993,21 +1005,31 @@ paths:
               schema:
                 type: object
                 properties:
-                  pagination:
-                    $ref: '#/components/schemas/PaginationInResponse'
                   items:
                     type: array
                     items:
                       allOf:
+                        - $ref: '#/paths/~1social-media/post/requestBody/content/application~1json/schema/allOf/0'
                         - type: object
-                          required:
-                            - id
                           properties:
                             id:
                               type: string
-                          example:
-                            id: 10
-                        - $ref: '#/paths/~1social-media/post/requestBody/content/application~1json/schema'
+                              example: 10
+                            icon:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  example: ddfdzrn1dw
+                                url:
+                                  type: string
+                                  example: public/images/pic-500x500-mid.png
+                                name:
+                                  type: string
+                                  example: 'pic-500x500-mid.png,'
+                                description:
+                                  type: string
+                                  example: Description about this photo
         '400':
           $ref: '#/components/responses/4XX'
         '500':
@@ -1021,20 +1043,23 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                link:
-                  type: string
-                icon:
-                  type: string
-              required:
-                - link
-              example:
-                name: Github
-                link: 'http://github.com/victor8titov'
-                icon: 'http://someIcon.com/github.png'
+              allOf:
+                - type: object
+                  required:
+                    - link
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      example: Github
+                    link:
+                      type: string
+                      example: 'http://github.com/user.git'
+                - type: object
+                  properties:
+                    imageId:
+                      type: string
+                      example: ddfdzrn1dw
       responses:
         '200':
           $ref: '#/components/responses/200AfterSuccessfulChangesEntity'
@@ -1043,37 +1068,6 @@ paths:
         '500':
           $ref: '#/components/responses/5XX'
   '/social-media/{id}':
-    get:
-      tags:
-        - social-media
-      description: Create one of social media
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: desc
-      responses:
-        '200':
-          description: Got Social media entity successful
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      id:
-                        type: string
-                    required:
-                      - id
-                    example:
-                      id: 10
-                  - $ref: '#/paths/~1social-media/post/requestBody/content/application~1json/schema'
-        '400':
-          $ref: '#/components/responses/4XX'
-        '500':
-          $ref: '#/components/responses/5XX'
     put:
       tags:
         - social-media
@@ -1147,6 +1141,7 @@ paths:
                 properties:
                   id:
                     type: string
+                    example: ddfdzrn1dw
                   items:
                     type: array
                     items:
@@ -1154,31 +1149,28 @@ paths:
                       properties:
                         url:
                           type: string
+                          example: public/images/pic-500x500-mid.png
                         width:
                           type: string
+                          example: 500
                         height:
                           type: string
+                          example: 500
                         name:
                           type: string
+                          example: 'pic-500x500-mid.png,'
                         description:
                           type: string
+                          example: Description about this photo
                         templateName:
                           type: string
+                          example: mid
                       required:
                         - url
                         - name
                 required:
                   - id
                   - items
-                example:
-                  id: ddfdzrn1dw
-                  items:
-                    - name: pic-500x500-mid.png
-                      templateName: mid
-                      width: 500
-                      height: 500
-                      description: about this photo text
-                      url: public/images/pic-500x500-mid.png
         '400':
           $ref: '#/components/responses/4XX'
         '401':

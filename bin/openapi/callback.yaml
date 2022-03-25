@@ -5,15 +5,44 @@ info:
 tags:
   - name: callback
     description: Working with feedback form
+    
 paths:
   /callback:
-    get:
+    post:
       tags:
         - callback
+      description: Send callback form 
+      requestBody:
+        description: Structure of new experience
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: mymail@mail.com
+                message:
+                  type: string
+                  example: Hello, I want you offer interesting idea about ...
+              required:
+                - email
+                - message
       responses:
         200:
-          description: OK
+          description: Message is received
+          
           content:
             application/json:
               schema:
-                type: string
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Your message is received and nearest time I answer you
+                required:
+                  - message
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'

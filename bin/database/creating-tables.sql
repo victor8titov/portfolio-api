@@ -80,13 +80,14 @@ CREATE TABLE projects_multilanguge_content (
 );
 
 --- table links
-DROP TABLE IF EXISTS links;
+DROP TABLE IF EXISTS links CASCADE;
 
 CREATE TABLE links (
   link_id serial NOT NULL,
   name VARCHAR(30) NOT NULL,
   link VARCHAR(100) NOT NULL,
-  project_id INT NOT NULL,
+  social_media BOOLEAN DEFAULT NULL,
+  project_id INT DEFAULT NULL,
   PRIMARY KEY (link_id),
   FOREIGN KEY (project_id)
     REFERENCES projects (project_id)
@@ -175,12 +176,13 @@ DROP TABLE IF EXISTS images;
 CREATE TABLE images (
   id serial NOT NULL,
   image_id VARCHAR(10) NOT NULL,
-  name TEXT NOT NULL,
-  description TEXT DEFAULT '',
+  name VARCHAR(200) NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
   width SMALLINT,
   height SMALLINT,
   template_name VARCHAR(8) DEFAULT '',
   project_id INT DEFAULT NULL,
+  link_id INT DEFAULT NULL,
   type_avatar VARCHAR(10) DEFAULT NULL,
   PRIMARY KEY (id),
   UNIQUE (image_id, name),
@@ -189,6 +191,30 @@ CREATE TABLE images (
     ON DELETE SET NULL,
   FOREIGN KEY ( project_id )
     REFERENCES projects (project_id)
+    ON DELETE SET NULL,
+  FOREIGN KEY ( link_id )
+    REFERENCES links ( link_id )
     ON DELETE SET NULL
 );
 
+DROP TABLE IF EXISTS images_new;
+CREATE TABLE images_new (
+  image_id serial NOT NULL,
+  group_id VARCHAR(10) NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  PRIMARY KEY ( image_id ),
+);
+
+DROP TABLE IF EXISTS images;
+CREATE TABLE images_groups (
+  id serial NOT NULL,
+  group_id VARCHAR(10) NOT NULL,
+  template_name VARCHAR(8) DEFAULT '',
+  name VARCHAR(200) NOT NULL,
+  width SMALLINT,
+  height SMALLINT,
+  PRIMARY KEY ( id ),
+  FOREIGN KEY ( template_name )
+    REFERENCES templates_image ( name )
+    ON DELETE SET NULL
+);

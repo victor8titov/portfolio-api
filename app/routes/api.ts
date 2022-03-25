@@ -6,15 +6,19 @@ import * as imageControllers from '../controllers/image'
 import * as projectControllers from '../controllers/project'
 import * as skillsControllers from '../controllers/skills'
 import * as timeStampControllers from '../controllers/time-stamps'
+import * as callbackControllers from '../controllers/callback'
+import * as socialMediaControllers from '../controllers/social-media'
 import { validate as validateProjects } from '../../bin/middleware/projects'
 import { validate as validateHomepage } from '../../bin/middleware/homepage'
 import { auth, validate as validateAuth } from '../../bin/middleware/auth'
 import { validate as validateImage } from '../../bin/middleware/image'
 import { validate as validateSkills } from '../../bin/middleware/skills'
 import { validate as validateTimeStamps } from '../../bin/middleware/time-stamps'
+import { validate as validationSocialMedia } from '../../bin/middleware/social-media'
 import createError from 'http-errors'
 import { uploadImage } from '../../bin/middleware/upload'
 import { errorHandler } from '../../bin/middleware/handler-error'
+import { validateCallback } from '../../bin/middleware/callback'
 
 const router = express.Router()
 
@@ -44,10 +48,19 @@ router.delete('/skill/:skillId', auth, validateSkills('delete'), skillsControlle
 
 /* goal Time Stamps */
 router.get('/time-stamps', validateTimeStamps('getAll'), timeStampControllers.getAll)
-router.post('/time-stamps', validateTimeStamps('create'), timeStampControllers.create)
+router.post('/time-stamps', auth, validateTimeStamps('create'), timeStampControllers.create)
 router.get('/time-stamp/:timeStampId', validateTimeStamps('getById'), timeStampControllers.getById)
-router.put('/time-stamp/:timeStampId', validateTimeStamps('update'), timeStampControllers.update)
-router.delete('/time-stamp/:timeStampId', validateTimeStamps('deleteById'), timeStampControllers.deleteById)
+router.put('/time-stamp/:timeStampId', auth, validateTimeStamps('update'), timeStampControllers.update)
+router.delete('/time-stamp/:timeStampId', auth, validateTimeStamps('deleteById'), timeStampControllers.deleteById)
+
+/* goal callback */
+router.post('/callback', validateCallback, callbackControllers.callback)
+
+/* goal social-media */
+router.get('/social-media', socialMediaControllers.getAll)
+router.post('/social-media', validationSocialMedia('create'), socialMediaControllers.create)
+router.put('/social-media/:socialMediaId', validationSocialMedia('update'), socialMediaControllers.update)
+router.delete('/social-media/:socialMediaId', validationSocialMedia('delete'), socialMediaControllers.deleteById)
 
 router.post('/upload/image', auth, uploadImage, uploadControllers.uploadImage)
 

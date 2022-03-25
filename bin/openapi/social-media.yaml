@@ -11,21 +11,6 @@ paths:
       tags:
         - social-media
       description: Get list social media entities
-      parameters:
-        - in: query
-          name: page 
-          schema: 
-            type: number
-          example: 2
-        - in: query
-          name: pageSize
-          schema:
-            type: number
-          example: 10
-        - in: query
-          name: language
-          schema:
-            $ref: 'api-doc.yaml#/components/schemas/Language'
       responses:
         200:
           description: OK
@@ -34,21 +19,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  pagination:
-                    $ref: 'api-doc.yaml#/components/schemas/PaginationInResponse'
-                  items:  
+                  items:
                     type: array
                     items:
-                      allOf:
-                        - type: object
-                          required:
-                            - id
-                          properties:
-                            id: 
-                              type: string
-                          example:
-                            id: 10
-                        - $ref: '#/components/schemas/SocialMedia'
+                      $ref: '#/components/schemas/SocialMediaView'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500: 
@@ -62,7 +36,7 @@ paths:
         content:
           application/json:
             schema: 
-              $ref: '#/components/schemas/SocialMedia'
+              $ref: '#/components/schemas/SocialMediaCreation'
       responses:
         200:
           $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'  
@@ -71,38 +45,6 @@ paths:
         500: 
           $ref: 'api-doc.yaml#/components/responses/5XX' 
   /social-media/{id}:
-    get:
-      tags:
-        - social-media
-      description: Create one of social media
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: desc 
-      
-      responses:
-        200: 
-          description: Got Social media entity successful
-          content:
-            application/json:
-              schema: 
-                allOf:
-                  - type: object
-                    properties:
-                      id: 
-                        type: string
-                    required:
-                      - id
-                    example: 
-                      id: 10  
-                  - $ref: '#/components/schemas/SocialMedia'
-        400:
-          $ref: 'api-doc.yaml#/components/responses/4XX'
-        500: 
-          $ref: 'api-doc.yaml#/components/responses/5XX'
     put: 
       tags:
         - social-media
@@ -119,7 +61,7 @@ paths:
         content:
           application/json:
             schema: 
-              $ref: '#/components/schemas/SocialMedia'
+              $ref: '#/components/schemas/SocialMediaCreation'
       responses:
         200:
           $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
@@ -148,20 +90,36 @@ paths:
  
 components:
   schemas:
-    SocialMedia: 
-        type: object
-        properties:
-          name: 
-            type: string
-          link:
-            type: string
-          icon: 
-            type: string
-        required:
-          - link
-        example:
-          name: Github
-          link: http://github.com/victor8titov
-          icon: http://someIcon.com/github.png
+    SocialMediaCommon:
+      type: object
+      required:
+        - link
+        - name
+      properties:
+        name: 
+          type: string
+          example: Github
+        link:
+          type: string
+          example: http://github.com/user.git
+    SocialMediaCreation: 
+      allOf:
+        - $ref: '#/components/schemas/SocialMediaCommon'
+        - type: object
+          properties:
+            imageId: 
+              type: string
+              example: ddfdzrn1dw
     
+    SocialMediaView:
+      allOf:
+        - $ref: '#/components/schemas/SocialMediaCommon'
+        - type: object
+          properties:
+            id: 
+              type: string
+              example: 10
+            icon:
+              $ref: 'image.yaml#/components/schemas/Icon'
+        
     

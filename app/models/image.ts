@@ -29,6 +29,8 @@ export type TemplateImage = {
   readonly height?: number | null
 }
 
+export type ImageSimple = Omit<Image, 'width' | 'height' | 'templateName'>
+
 export async function getTemplatesImage (): Promise<TemplateImage[]> {
   const db = new Client()
   try {
