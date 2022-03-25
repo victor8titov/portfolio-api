@@ -177,10 +177,10 @@ export async function updateSkill (skillId: string, skill: SkillCreation): Promi
 
     await db.query('COMMIT;')
   } catch (e: any) {
+    await db.query('ROLLBACK;')
     console.error(e)
     throw e
   } finally {
-    await db.query('ROLLBACK;')
     await db.end()
   }
 }

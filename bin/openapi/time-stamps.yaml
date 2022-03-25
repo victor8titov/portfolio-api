@@ -12,20 +12,6 @@ paths:
         - time-stamps
       parameters:
         - in: query
-          name: page 
-          schema: 
-            type: number
-          example: 2
-        - in: query
-          name: pageSize
-          schema:
-            type: number
-          example: 10
-        - in: query
-          name: sort
-          schema:
-            $ref: 'api-doc.yaml#/components/schemas/Sort'
-        - in: query
           name: language
           schema:
             $ref: 'api-doc.yaml#/components/schemas/Language'
@@ -38,23 +24,15 @@ paths:
               schema:
                 type: object
                 properties:
-                  pagination:
-                    $ref: 'api-doc.yaml#/components/schemas/PaginationInResponse'
-                  sorted:
-                    $ref: 'api-doc.yaml#/components/schemas/Sort'
-                  items: 
+                  languages: 
+                    $ref: 'api-doc.yaml#/components/schemas/Languages'
+                  currentLanguage: 
+                    $ref: 'api-doc.yaml#/components/schemas/Language'
+                  items:
                     type: array
                     items:
-                      allOf:
-                        - type: object
-                          required:
-                            - id
-                          properties:
-                            id: 
-                              type: string
-                          example:
-                            id: 10
-                        - $ref: '#/components/schemas/TimeStamps'
+                      $ref: '#/components/schemas/TimeStampsView'
+
         400: 
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
@@ -63,20 +41,24 @@ paths:
       tags:
         - time-stamps
       description: Create a time stamp
+      security:
+        - BearerAuth: []
       requestBody:
         description: Time label fields
         content:
           application/json:
             schema: 
-              $ref: '#/components/schemas/TimeStamps'
+              $ref: '#/components/schemas/TimeStampsCreation'
       responses:
         200:
           $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
+        401:
+          $ref: 'api-doc.yaml#/components/responses/UnauthorizedError'
         500: 
           $ref: 'api-doc.yaml#/components/responses/5XX'
-  /time-stamps/{id}:
+  /time-stamp/{id}:
     get:
       tags:
         - time-stamps
@@ -98,7 +80,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TimeStamps'
+                allOf:
+                  - type: object
+                    properties:
+                      currentLanguage:
+                        $ref: 'api-doc.yaml#/components/schemas/Language'
+                  - $ref: '#/components/schemas/TimeStampsView'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500: 
@@ -107,30 +94,36 @@ paths:
       tags:
         - time-stamps
       description: Change one the Time stamp
+      security:
+        - BearerAuth: []
       parameters:
         - in: path
           name: id
           schema:
             type: string
           required: true
-          description: desc 
+          description: Id Time stamp for changing 
       requestBody:
         description: New Data for Time stamp
         content:
           application/json:
             schema: 
-              $ref: '#/components/schemas/TimeStamps'
+              $ref: '#/components/schemas/TimeStampsCreation'
       responses:
         200:
           $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
+        401:
+          $ref: 'api-doc.yaml#/components/responses/UnauthorizedError'
         500: 
           $ref: 'api-doc.yaml#/components/responses/5XX'    
     delete:
       tags:
         - time-stamps
       description: Delete one of Time stamp
+      security:
+        - BearerAuth: []
       parameters:
         - in: path
           name: id
@@ -143,34 +136,44 @@ paths:
           $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
+        401:
+          $ref: 'api-doc.yaml#/components/responses/UnauthorizedError'
         500: 
           $ref: 'api-doc.yaml#/components/responses/5XX'    
 
 components:
   schemas:
-    TimeStamps:
+    TimeStampsCommon:
       type: object
       properties:
         name:
           type: string
-        description:
-          type: string
+          example: Компания ООО Петрушка
         link: 
           type: string
-        stack:
-          type: array
-          items: 
-            type: string
-        dateStart:
-          type: string  
-          format: date
-        dateEnd:
-          type: string
-          format: date
-      example:
-        name: Компания ООО Петрушка
-        description: Описание как хорошо было в компании
-        link: http://example.com
-        stack: ['css', 'html5', 'javascript']
-        dateStart: 2021-10-10
-        dateEnd: 2022-10-10
+          example: http://example.com
+        events:
+          $ref: 'api-doc.yaml#/components/schemas/Events'
+    
+    TimeStampsView:
+      allOf:
+        - $ref: '#/components/schemas/TimeStampsCommon'
+        - type: object
+          properties:
+            id:
+              type: string
+              example: 10
+            description:
+              type: string
+              example: text about job
+    
+    TimeStampsCreation:
+      allOf:
+        - $ref: '#/components/schemas/TimeStampsCommon'
+        - type: object
+          properties:
+            description:
+              $ref: 'api-doc.yaml#/components/schemas/StringWithDivisionIntoLanguages'
+      
+
+

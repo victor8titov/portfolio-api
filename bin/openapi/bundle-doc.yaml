@@ -663,7 +663,7 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: '#/paths/~1skill~1%7Bid%7D/get/responses/200/content/application~1json/schema'
+                      $ref: '#/paths/~1skill~1%7Bid%7D/get/responses/200/content/application~1json/schema/allOf/1'
         '400':
           $ref: '#/components/responses/4XX'
         '500':
@@ -731,15 +731,20 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: '#/paths/~1skills/post/requestBody/content/application~1json/schema/allOf/0'
                   - type: object
                     properties:
-                      id:
-                        type: string
-                        example: 10
-                      description:
-                        type: string
-                        example: text about this skill
+                      currentLanguage:
+                        $ref: '#/components/schemas/Language'
+                  - allOf:
+                      - $ref: '#/paths/~1skills/post/requestBody/content/application~1json/schema/allOf/0'
+                      - type: object
+                        properties:
+                          id:
+                            type: string
+                            example: 10
+                          description:
+                            type: string
+                            example: text about this skill
         '400':
           $ref: '#/components/responses/4XX'
         '500':
@@ -800,20 +805,6 @@ paths:
         - time-stamps
       parameters:
         - in: query
-          name: page
-          schema:
-            type: number
-          example: 2
-        - in: query
-          name: pageSize
-          schema:
-            type: number
-          example: 10
-        - in: query
-          name: sort
-          schema:
-            $ref: '#/components/schemas/Sort'
-        - in: query
           name: language
           schema:
             $ref: '#/components/schemas/Language'
@@ -825,23 +816,14 @@ paths:
               schema:
                 type: object
                 properties:
-                  pagination:
-                    $ref: '#/components/schemas/PaginationInResponse'
-                  sorted:
-                    $ref: '#/components/schemas/Sort'
+                  languages:
+                    $ref: '#/components/schemas/Languages'
+                  currentLanguage:
+                    $ref: '#/components/schemas/Language'
                   items:
                     type: array
                     items:
-                      allOf:
-                        - type: object
-                          required:
-                            - id
-                          properties:
-                            id:
-                              type: string
-                          example:
-                            id: 10
-                        - $ref: '#/paths/~1time-stamps/post/requestBody/content/application~1json/schema'
+                      $ref: '#/paths/~1time-stamp~1%7Bid%7D/get/responses/200/content/application~1json/schema/allOf/1'
         '400':
           $ref: '#/components/responses/4XX'
         '500':
@@ -850,47 +832,38 @@ paths:
       tags:
         - time-stamps
       description: Create a time stamp
+      security:
+        - BearerAuth: []
       requestBody:
         description: Time label fields
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                description:
-                  type: string
-                link:
-                  type: string
-                stack:
-                  type: array
-                  items:
-                    type: string
-                dateStart:
-                  type: string
-                  format: date
-                dateEnd:
-                  type: string
-                  format: date
-              example:
-                name: Компания ООО Петрушка
-                description: Описание как хорошо было в компании
-                link: 'http://example.com'
-                stack:
-                  - css
-                  - html5
-                  - javascript
-                dateStart: 2021-10-10T00:00:00.000Z
-                dateEnd: 2022-10-10T00:00:00.000Z
+              allOf:
+                - type: object
+                  properties:
+                    name:
+                      type: string
+                      example: Компания ООО Петрушка
+                    link:
+                      type: string
+                      example: 'http://example.com'
+                    events:
+                      $ref: '#/components/schemas/Events'
+                - type: object
+                  properties:
+                    description:
+                      $ref: '#/components/schemas/StringWithDivisionIntoLanguages'
       responses:
         '200':
           $ref: '#/components/responses/200AfterSuccessfulChangesEntity'
         '400':
           $ref: '#/components/responses/4XX'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/5XX'
-  '/time-stamps/{id}':
+  '/time-stamp/{id}':
     get:
       tags:
         - time-stamps
@@ -912,7 +885,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/paths/~1time-stamps/post/requestBody/content/application~1json/schema'
+                allOf:
+                  - type: object
+                    properties:
+                      currentLanguage:
+                        $ref: '#/components/schemas/Language'
+                  - allOf:
+                      - $ref: '#/paths/~1time-stamps/post/requestBody/content/application~1json/schema/allOf/0'
+                      - type: object
+                        properties:
+                          id:
+                            type: string
+                            example: 10
+                          description:
+                            type: string
+                            example: text about job
         '400':
           $ref: '#/components/responses/4XX'
         '500':
@@ -921,13 +908,15 @@ paths:
       tags:
         - time-stamps
       description: Change one the Time stamp
+      security:
+        - BearerAuth: []
       parameters:
         - in: path
           name: id
           schema:
             type: string
           required: true
-          description: desc
+          description: Id Time stamp for changing
       requestBody:
         description: New Data for Time stamp
         content:
@@ -939,12 +928,16 @@ paths:
           $ref: '#/components/responses/200AfterSuccessfulChangesEntity'
         '400':
           $ref: '#/components/responses/4XX'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/5XX'
     delete:
       tags:
         - time-stamps
       description: Delete one of Time stamp
+      security:
+        - BearerAuth: []
       parameters:
         - in: path
           name: id
@@ -957,6 +950,8 @@ paths:
           $ref: '#/components/responses/200AfterSuccessfulChangesEntity'
         '400':
           $ref: '#/components/responses/4XX'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/5XX'
   /callback:
@@ -1265,15 +1260,13 @@ components:
         properties:
           date:
             type: string
+            example: '2021-10-10T00:00:00.000Z'
           status:
             type: string
-            format: enum - release
+            example: status
         required:
           - date
           - status
-      example:
-        - date: '2022-11-11'
-          status: release
     StringWithDivisionIntoLanguages:
       type: object
       properties:

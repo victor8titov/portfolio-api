@@ -123,6 +123,7 @@ export async function createProject (project: ProjectRequest): Promise<string> {
 
     return _projectId
   } catch (e: any) {
+    await db.query('ROLLBACK;')
     console.error(e)
     throw e
   } finally {

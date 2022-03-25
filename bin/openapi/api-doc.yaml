@@ -33,8 +33,8 @@ paths:
     $ref: 'skills.yaml#/paths/~1skill~1{id}'
   /time-stamps:
     $ref: 'time-stamps.yaml#/paths/~1time-stamps'
-  /time-stamps/{id}:
-   $ref: 'time-stamps.yaml#/paths/~1time-stamps~1{id}'
+  /time-stamp/{id}:
+   $ref: 'time-stamps.yaml#/paths/~1time-stamp~1{id}'
   /callback:
    $ref: 'callback.yaml#/paths/~1callback'
   /social-media:
@@ -61,19 +61,13 @@ components:
         properties:
           date: 
             type: string
+            example: "2021-10-10T00:00:00.000Z"
           status:
             type: string
-            format: enum
-              - release
+            example: status 
         required:
           - date
           - status
-      example: [
-        {
-          date: '2022-11-11',
-          status: 'release',
-        }
-      ]
 
     StringWithDivisionIntoLanguages:
       type: object

@@ -85,7 +85,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SkillView'                 
+                allOf:
+                  - type: object
+                    properties:
+                      currentLanguage: 
+                        $ref: 'api-doc.yaml#/components/schemas/Language'
+                  - $ref: '#/components/schemas/SkillView'                 
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500:

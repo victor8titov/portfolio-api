@@ -8,6 +8,11 @@ export enum Language {
   EN = 'en'
 }
 
+export type EventAndDate = {
+  date: string
+  status: string
+}
+
 export type ErrorBody = {
   message: string
   source?: string

@@ -5,11 +5,13 @@ import * as uploadControllers from '../controllers/upload'
 import * as imageControllers from '../controllers/image'
 import * as projectControllers from '../controllers/project'
 import * as skillsControllers from '../controllers/skills'
+import * as timeStampControllers from '../controllers/time-stamps'
 import { validate as validateProjects } from '../../bin/middleware/projects'
 import { validate as validateHomepage } from '../../bin/middleware/homepage'
 import { auth, validate as validateAuth } from '../../bin/middleware/auth'
 import { validate as validateImage } from '../../bin/middleware/image'
 import { validate as validateSkills } from '../../bin/middleware/skills'
+import { validate as validateTimeStamps } from '../../bin/middleware/time-stamps'
 import createError from 'http-errors'
 import { uploadImage } from '../../bin/middleware/upload'
 import { errorHandler } from '../../bin/middleware/handler-error'
@@ -39,6 +41,13 @@ router.post('/skills', auth, validateSkills('create'), skillsControllers.create)
 router.get('/skill/:skillId', validateSkills('getById'), skillsControllers.getSkill)
 router.put('/skill/:skillId', auth, validateSkills('update'), skillsControllers.update)
 router.delete('/skill/:skillId', auth, validateSkills('delete'), skillsControllers.deleteSkill)
+
+/* goal Time Stamps */
+router.get('/time-stamps', validateTimeStamps('getAll'), timeStampControllers.getAll)
+router.post('/time-stamps', validateTimeStamps('create'), timeStampControllers.create)
+router.get('/time-stamp/:timeStampId', validateTimeStamps('getById'), timeStampControllers.getById)
+router.put('/time-stamp/:timeStampId', validateTimeStamps('update'), timeStampControllers.update)
+router.delete('/time-stamp/:timeStampId', validateTimeStamps('deleteById'), timeStampControllers.deleteById)
 
 router.post('/upload/image', auth, uploadImage, uploadControllers.uploadImage)
 

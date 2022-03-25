@@ -94,7 +94,7 @@ CREATE TABLE links (
 );
 
 --- table skills
-DROP TABLE IF EXISTS skills;
+DROP TABLE IF EXISTS skills CASCADE;
 
 CREATE TABLE skills (
   skill_id serial NOT NULL,
@@ -105,6 +105,33 @@ CREATE TABLE skills (
   UNIQUE ( name )
 );
 
+--- table time-stamps
+DROP TABLE IF EXISTS time_stamps CASCADE;
+
+CREATE TABLE time_stamps (
+  time_stamp_id serial NOT NULL,
+  name VARCHAR(200) NOT NULL,
+  link VARCHAR(200) NOT NULL DEFAULT '',
+  PRIMARY KEY ( time_stamp_id )
+);
+
+--- table events
+DROP TABLE IF EXISTS events;
+
+CREATE TABLE events (
+  event_id serial NOT NULL,
+  date DATE NOT NULL,
+  status VARCHAR(50) NOT NULL,
+  time_stamp_id INT DEFAULT NULL,
+  project_id INT DEFAULT NULL,
+  PRIMARY KEY ( event_id ),
+  FOREIGN KEY (time_stamp_id)
+    REFERENCES time_stamps (time_stamp_id)
+    ON DELETE CASCADE,
+  FOREIGN KEY (project_id)
+    REFERENCES projects (project_id)
+    ON DELETE CASCADE
+);
 
 --- create table multilingual_content
 DROP TABLE IF EXISTS multilingual_content;
@@ -114,8 +141,8 @@ CREATE TABLE multilingual_content (
   language VARCHAR(5) NOT NULL,
   project_id INT DEFAULT NULL,
   skill_id INT DEFAULT NULL,
+  time_stamp_id INT DEFAULT NULL,
   content TEXT NOT NULL DEFAULT '',
-  
   PRIMARY KEY (id, language),
   FOREIGN KEY (project_id)
     REFERENCES projects (project_id)
@@ -125,10 +152,11 @@ CREATE TABLE multilingual_content (
     ON DELETE CASCADE,
   FOREIGN KEY (skill_id)
     REFERENCES skills (skill_id)
+    ON DELETE CASCADE,
+  FOREIGN KEY (time_stamp_id)
+    REFERENCES time_stamps (time_stamp_id)
     ON DELETE CASCADE
 );
-
-
 
 --- create table templates_image ---
 DROP TABLE IF EXISTS templates_image CASCADE;
