@@ -11,7 +11,7 @@ import * as socialMediaControllers from '../controllers/social-media'
 import { validate as validateProjects } from '../../bin/middleware/projects'
 import { validate as validateHomepage } from '../../bin/middleware/homepage'
 import { auth, validate as validateAuth } from '../../bin/middleware/auth'
-import { validateImage } from '../../bin/middleware/image'
+import { validateImage, validateImages } from '../../bin/middleware/image'
 import { validate as validateSkills } from '../../bin/middleware/skills'
 import { validate as validateTimeStamps } from '../../bin/middleware/time-stamps'
 import { validate as validationSocialMedia } from '../../bin/middleware/social-media'
@@ -64,6 +64,7 @@ router.delete('/social-media/:socialMediaId', validationSocialMedia('delete'), s
 
 router.post('/upload/image', auth, validateUpload, uploadImage, uploadControllers.uploadImage)
 
+router.get('/images', auth, validateImages, imageControllers.getImages)
 router.get('/image/:fileId', auth, validateImage, imageControllers.getById)
 router.delete('/image/:fileId', auth, validateImage, imageControllers.deleteById)
 

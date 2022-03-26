@@ -3,11 +3,17 @@ import { param } from 'express-validator'
 import { getListImagesId } from '../../app/models/image'
 import { validationErrorHandler } from './handler-error'
 import createError from 'http-errors'
+import { validatePagination } from './validate-common'
 
 export const validateImage = [
   param('fileId', 'Param fileId is wrong').notEmpty().isString(),
   validationErrorHandler,
   isExistById
+]
+
+export const validateImages = [
+  ...validatePagination,
+  validationErrorHandler
 ]
 
 async function isExistById (req: Request, res: Response, next: NextFunction) {

@@ -21,9 +21,15 @@ export type ErrorBody = {
 
 export type OptionsRequest = {
   readonly language?: Language
-  readonly page?: number | undefined
-  readonly pageSize?: number | undefined
+  readonly page?: number
+  readonly pageSize?: number
   readonly sort?: string[] | undefined
+}
+
+export type Pagination = {
+  page: number
+  pageSize: number
+  totalPages: number
 }
 
 export enum TypeErrors {

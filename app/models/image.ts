@@ -1,6 +1,7 @@
 import { Client } from 'pg'
 import format from 'pg-format'
 import { getUrlImage } from '../../bin/common/paths'
+import { OptionsRequest, Pagination } from './types'
 
 export type TemplateImage = {
   readonly name: string
@@ -28,6 +29,13 @@ export type ImageCreation = Omit<ImageView, 'id' | 'divisionByTemplates'> & {
   divisionByTemplates: ImageByTemplateCreation[]
 }
 
+export type ListImages = {
+  pagination?: Pagination
+  currentLanguage?: string
+  supportedLanguages?: string[]
+  items?: ImageView[]
+}
+
 export async function getTemplatesImage (): Promise<TemplateImage[]> {
   const db = new Client()
   try {
@@ -45,42 +53,22 @@ export async function getTemplatesImage (): Promise<TemplateImage[]> {
   }
 }
 
-export async function getImageById (id: string): Promise<ImageView> {
+export async function getCountImages (): Promise<number> {
   const db = new Client()
   try {
     await db.connect()
 
-    const { rows: _imagesList } = await db.query<{ id: string, description: string }>(`
-        SELECT image_id as id, description FROM images
-          WHERE image_id = $1;
-        `, [id])
-    const _image = _imagesList.shift()
-
-    if (!_image) {
-      throw new Error('Error during getting image entity')
-    }
-
-    const { rows: _divisionByTemplates } =
-      await db.query<{ name: string, template: string, width: string | null, height: string | null}>(`
-        SELECT name, template_name as template, width, height 
-          FROM images_division_by_template
-          WHERE image_id = $1
-          ORDER BY name;
-        `, [_image.id])
-
-    return {
-      ..._image,
-      divisionByTemplates: _divisionByTemplates.map(i => ({ ...i, url: getUrlImage(i.name) }))
-    }
+    const { rows } = await db.query('SELECT COUNT( * ) FROM images;')
+    return parseInt(rows.shift().count)
   } catch (e: any) {
     console.error(e)
-    throw new Error(e.message)
+    throw e
   } finally {
-    await db.end()
+    db.end()
   }
 }
 
-export async function getImageByIdWithoutConnectDB (db: Client, id: string): Promise<ImageView> {
+export async function queryGetImageById (db: Client, id: string): Promise<ImageView> {
   const { rows: _imagesList } = await db.query<{ id: string, description: string }>(`
         SELECT image_id as id, description FROM images
           WHERE image_id = $1;
@@ -105,12 +93,56 @@ export async function getImageByIdWithoutConnectDB (db: Client, id: string): Pro
   }
 }
 
+export async function getImageById (id: string): Promise<ImageView> {
+  const db = new Client()
+  try {
+    await db.connect()
+
+    return await queryGetImageById(db, id)
+  } catch (e: any) {
+    console.error(e)
+    throw new Error(e.message)
+  } finally {
+    await db.end()
+  }
+}
+
+export async function getListImages (option: OptionsRequest): Promise<ImageView[]> {
+  const db = new Client()
+  try {
+    const { page = 1, pageSize = 100 } = option
+
+    await db.connect()
+
+    const { rows } = await db.query<{ id: string }>(`
+      SELECT image_id as id
+        FROM images 
+        LIMIT $1
+        OFFSET $2;
+    `, [pageSize, ((page - 1) * pageSize)])
+
+    const _images: ImageView[] = []
+
+    for (const { id } of rows) {
+      const _image = await queryGetImageById(db, id)
+      _images.push(_image)
+    }
+
+    return _images
+  } catch (e: any) {
+    console.error(e)
+    throw e
+  } finally {
+    await db.end()
+  }
+}
+
 export async function getListImagesId (): Promise<string[]> {
   const _db = new Client()
   try {
     await _db.connect()
 
-    const _imagesIdRows = await _db.query(`
+    const _imagesIdRows = await _db.query<{id: string}>(`
       SELECT image_id as id FROM images
         GROUP BY image_id;
     `)

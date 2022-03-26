@@ -1,5 +1,5 @@
 import { Client } from 'pg'
-import { getImageByIdWithoutConnectDB, ImageView } from './image'
+import { queryGetImageById, ImageView } from './image'
 
 export type SocialMediaView = {
   name: string
@@ -52,7 +52,7 @@ export async function getAll (): Promise<SocialMediaList> {
     for (const { image: imageId, ...rest } of rows) {
       let icon
       if (imageId) {
-        icon = await getImageByIdWithoutConnectDB(db, imageId)
+        icon = await queryGetImageById(db, imageId)
       }
       items.push({
         ...rest,

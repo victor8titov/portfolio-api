@@ -1,11 +1,11 @@
-import express, { NextFunction } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import fs from 'fs'
 import createError from 'http-errors'
 import * as model from '../models/image'
 import path from 'path'
 import { pathForImages } from '../../bin/common/paths'
 
-export async function getById (req: express.Request, res: express.Response, next: NextFunction) {
+export async function getById (req: Request, res: Response, next: NextFunction) {
   try {
     const fileId = req.params.fileId
 
@@ -17,7 +17,38 @@ export async function getById (req: express.Request, res: express.Response, next
   }
 }
 
-export async function deleteById (req: express.Request, res: express.Response, next: NextFunction) {
+export async function getImages (req: Request, res: Response, next: NextFunction) {
+  try {
+    const page = parseInt(req.query.page as string) || 1
+    const pageSize = parseInt(req.query.pageSize as string) || 100
+
+    const _answer: model.ListImages = {}
+    const items = await model.getListImages({ page, pageSize })
+
+    if (page && pageSize) {
+      const _count = await model.getCountImages()
+      const totalPages = Math.ceil(_count / pageSize)
+
+      if (page > totalPages) {
+        return next(createError(400, 'Page number outside', { source: 'Param page' }))
+      }
+
+      _answer.pagination = {
+        page,
+        pageSize,
+        totalPages
+      }
+    }
+
+    _answer.items = items
+
+    res.status(200).json(_answer)
+  } catch (e) {
+    next(createError(500, 'Error is during getting projects list'))
+  }
+}
+
+export async function deleteById (req: Request, res: Response, next: NextFunction) {
   try {
     const fileId = req.params.fileId
 

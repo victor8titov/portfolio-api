@@ -282,7 +282,7 @@ paths:
                   example:
                     avatars:
                       - type: black
-                        imageId: ddfdzrn1dw
+                        imageId: 9
       responses:
         '200':
           description: OK. Data Update
@@ -1177,6 +1177,42 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/5XX'
+  /images:
+    get:
+      tags:
+        - image
+      description: Get a list of images
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: number
+          example: 2
+        - in: query
+          name: pageSize
+          schema:
+            type: number
+          example: 10
+      responses:
+        '200':
+          description: Successfully receive list images
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInResponse'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/paths/~1upload~1image/post/responses/200/content/application~1json/schema'
+        '400':
+          $ref: '#/components/responses/4XX'
+        '500':
+          $ref: '#/components/responses/5XX'
   '/image/{id}':
     get:
       tags:
@@ -1230,7 +1266,7 @@ paths:
                 required:
                   - id
                 example:
-                  id: klj009lkc
+                  id: 5
                   message: successful deleted
         '400':
           $ref: '#/components/responses/4XX'

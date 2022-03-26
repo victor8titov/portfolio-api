@@ -6,6 +6,42 @@ tags:
   - name: image
     description: Get information about image and manipulate this image
 paths:
+  /images:
+    get: 
+      tags:
+        - image
+      description: Get a list of images
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: page 
+          schema: 
+            type: number
+          example: 2
+        - in: query
+          name: pageSize
+          schema:
+            type: number
+          example: 10
+      responses:
+        200:
+          description: Successfully receive list images
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pagination:
+                    $ref: 'api-doc.yaml#/components/schemas/PaginationInResponse'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Image'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
   /image/{id}:
     get:
       tags:
@@ -60,7 +96,7 @@ paths:
                 required:
                   - id
                 example:
-                  id: klj009lkc
+                  id: 5
                   message: successful deleted
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'

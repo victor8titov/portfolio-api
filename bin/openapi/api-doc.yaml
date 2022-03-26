@@ -43,6 +43,8 @@ paths:
     $ref: 'social-media.yaml#/paths/~1social-media~1{id}'
   /upload/image:
    $ref: 'upload.yaml#/paths/~1upload~1image'
+  /images:
+    $ref: 'image.yaml#/paths/~1images'
   /image/{id}:
    $ref: 'image.yaml#/paths/~1image~1{id}'
 
