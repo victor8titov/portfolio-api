@@ -1,23 +1,9 @@
 import express, { NextFunction } from 'express'
 import createError from 'http-errors'
-import { getImagesByProjectId } from '../models/image'
 import { getLanguages } from '../models/language'
 import * as model from '../models/project'
 import { ProjectListWithPagination } from '../models/project'
 import { Language } from '../models/types'
-
-export async function create (req: express.Request, res: express.Response, next: NextFunction) {
-  try {
-    const id = await model.createProject({ ...req.body })
-
-    res.status(200).json({
-      id,
-      message: 'Project created successfully'
-    })
-  } catch (e) {
-    next(createError(500, 'Error is during creating project'))
-  }
-}
 
 export async function getProject (req: express.Request, res: express.Response, next: NextFunction) {
   try {
@@ -33,17 +19,16 @@ export async function getProject (req: express.Request, res: express.Response, n
     const projectId = req.params.projectId
 
     const _project = await model.getProjectById(projectId, language as Language)
-    const images = await getImagesByProjectId(projectId)
 
     if (!_project) {
       return next(createError(400, 'Project with such id does not exists'))
     }
 
     res.status(200).json({
+      id: projectId,
       languages: _supportedLanguages,
       currentLanguage: language,
-      ..._project,
-      images
+      ..._project
     } as model.ProjectResponse)
   } catch (e) {
     next(createError(500, 'Error is getting during getting Project'))
@@ -76,7 +61,9 @@ export async function getProjects (req: express.Request, res: express.Response, 
       const _count = await model.getCountProjects()
       const totalPages = Math.ceil(_count / pageSize)
 
-      if (page > totalPages) return next(createError(400, 'Page number outside', { source: 'Param page' }))
+      if (page > totalPages) {
+        return next(createError(400, 'Page number outside', { source: 'Param page' }))
+      }
 
       _result.pagination = {
         page,
@@ -94,6 +81,19 @@ export async function getProjects (req: express.Request, res: express.Response, 
     res.status(200).json(_result)
   } catch (e) {
     next(createError(500, 'Error is during getting projects list'))
+  }
+}
+
+export async function create (req: express.Request, res: express.Response, next: NextFunction) {
+  try {
+    const id = await model.createProject({ ...req.body })
+
+    res.status(200).json({
+      id,
+      message: 'Project created successfully'
+    })
+  } catch (e) {
+    next(createError(500, 'Error is during creating project'))
   }
 }
 

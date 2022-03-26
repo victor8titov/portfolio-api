@@ -41,7 +41,6 @@ async function createTemplatesForImages () {
     await db.query(`
       INSERT INTO templates_image (name, width, height)
         VALUES 
-          ('original', null, null),
           ('mid', 800, null),
           ('small', 300, 300);
     `)

@@ -76,7 +76,7 @@ components:
       properties:
         id: 
           type: string
-          example: ddfdzrn1dw
+          example: 1
         url: 
           type: string
           example: public/images/pic-500x500-mid.png
@@ -85,15 +85,18 @@ components:
           example: pic-500x500-mid.png, 
         description: 
           type: string
-          example: Description about this photo
+          example: Description about this icon
         
     Image:
       type: object
       properties:
         id: 
           type: string
-          example: ddfdzrn1dw
-        items: 
+          example: 1
+        description:
+          type: string
+          example: Description image. It can be useful for alt properties in img tag
+        divisionByTemplates: 
           type: array
           items:
             type: object
@@ -110,10 +113,7 @@ components:
               name: 
                 type: string
                 example: pic-500x500-mid.png, 
-              description: 
-                type: string
-                example: Description about this photo
-              templateName:
+              template:
                 type: string
                 example: mid
             required:

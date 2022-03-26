@@ -154,7 +154,7 @@ components:
             avatars: [
               {
                 type: 'black',
-                imageId: 'ddfdzrn1dw',
+                imageId: 9,
               }
             ]
     HomePageResponse:

@@ -1,4 +1,3 @@
-import { query } from 'express'
 import { Client } from 'pg'
 import format from 'pg-format'
 import { EventAndDate, Language, ObjectWithLanguage } from './types'

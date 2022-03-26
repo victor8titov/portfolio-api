@@ -1,5 +1,7 @@
 import { Client } from 'pg'
-import { Image } from './image'
+import format from 'pg-format'
+import { getUrlImage } from '../../bin/common/paths'
+import { ImageView } from './image'
 import { Language, ObjectWithLanguage, OptionsRequest } from './types'
 
 type HomepageLineDB = {
@@ -15,7 +17,7 @@ export type AvatarRequest = {
 
 export type AvatarResponse = {
   type: string
-  images: Image[]
+  image: ImageView
 }
 
 export type HomePage = {
@@ -122,6 +124,77 @@ export async function updateHomePage (homepage: HomePageRequest): Promise<void> 
   } catch (e: any) {
     console.error(e)
     throw e
+  } finally {
+    await db.end()
+  }
+}
+
+export async function updateAvatar (avatars: AvatarRequest[]): Promise<void> {
+  const db = new Client()
+  try {
+    await db.connect()
+
+    await db.query('DELETE FROM avatars;')
+
+    const _values = avatars.map(i => [i.imageId, i.type])
+    const _query = format(`
+      INSERT INTO avatars 
+        (image_id, type_avatar)
+        VALUES
+        %L;
+    `, _values)
+
+    await db.query(_query)
+  } catch (e: any) {
+    console.error(e)
+    throw new Error(e.message)
+  } finally {
+    await db.end()
+  }
+}
+
+export async function getAvatars (): Promise<AvatarResponse[]> {
+  const db = new Client()
+  try {
+    await db.connect()
+
+    const avatars: AvatarResponse[] = []
+
+    const { rows: listAvatars } = await db.query<{type: string, imageid: string}>(`
+      SELECT type_avatar as type, image_id as imageid FROM avatars
+    `)
+
+    for (const { imageid, type } of listAvatars) {
+      const { rows: imagesList } = await db.query<{ id: string, description: string }>(`
+        SELECT image_id as id, description FROM images
+          WHERE image_id = $1;
+        `, [imageid])
+      const image = imagesList.shift()
+
+      if (!image) {
+        throw new Error('Error during getting image entity')
+      }
+
+      const { rows: divisionByTemplates } =
+        await db.query<{ name: string, template: string, width: string | null, height: string | null}>(`
+          SELECT name, template_name as template, width, height 
+            FROM images_division_by_template
+            WHERE image_id = $1
+            ORDER BY name;
+          `, [image.id])
+
+      avatars.push({
+        type: type,
+        image: {
+          ...image,
+          divisionByTemplates: divisionByTemplates.map(i => ({ ...i, url: getUrlImage(i.name) }))
+        }
+      })
+    }
+    return avatars
+  } catch (e: any) {
+    console.error(e)
+    throw new Error(e.message)
   } finally {
     await db.end()
   }

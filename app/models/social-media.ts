@@ -1,12 +1,10 @@
-import { query } from 'express'
 import { Client } from 'pg'
-import { getUrlImage } from '../../bin/common/paths'
-import { ImageSimple } from './image'
+import { getImageByIdWithoutConnectDB, ImageView } from './image'
 
 export type SocialMediaView = {
   name: string
   link: string
-  icon?: ImageSimple
+  icon?: ImageView
 }
 
 export type SocialMediaCreation = Omit<SocialMediaView, 'icon'> & {
@@ -43,25 +41,22 @@ export async function getAll (): Promise<SocialMediaList> {
 
     const items: SocialMediaView[] = []
 
-    const { rows } = await db.query<{ id: string, name: string, link: string}>(`
-      SELECT link_id as id, name, link FROM links
+    const { rows } =
+      await db.query<{ id: string, name: string, link: string, image: string}>(`
+      SELECT link_id as id, name, link, image_id as image 
+        FROM links
         WHERE social_media = true
         ORDER BY name;
     `)
 
-    for (const _link of rows) {
-      const { rows } = await db.query(`
-        SELECT image_id as id, name, description FROM images
-          WHERE link_id = $1;
-      `, [_link.id])
-      const _image = rows.shift()
-
+    for (const { image: imageId, ...rest } of rows) {
+      let icon
+      if (imageId) {
+        icon = await getImageByIdWithoutConnectDB(db, imageId)
+      }
       items.push({
-        ..._link,
-        // icon: {
-        //   ..._image,
-        //   url: getUrlImage(_image.name)
-        // }
+        ...rest,
+        ...(icon ? { icon } : {})
       })
     }
 
@@ -84,11 +79,11 @@ export async function create (socialMedia: SocialMediaCreation): Promise<number>
 
     const { rows } = await db.query(`
       INSERT INTO links 
-      (name, link, social_media)
+      (name, link, social_media, image_id)
       VALUES
-      ($1, $2, true)
+      ($1, $2, true, $3)
       RETURNING link_id as id;
-    `, [name, link])
+    `, [name, link, imageId])
 
     const linkId = rows.shift().id
 
@@ -96,14 +91,6 @@ export async function create (socialMedia: SocialMediaCreation): Promise<number>
       await db.query('ROLLBACK;')
       throw new Error('Error during creating link entity')
     }
-
-    // if (imageId) {
-    //   await db.query(`
-    //     UPDATE images SET
-    //     link_id = $1
-    //     WHERE image_id = $2;
-    //   `, [linkId, imageId])
-    // }
 
     await db.query('COMMIT;')
     return linkId
@@ -122,25 +109,15 @@ export async function update (socialMediaId: string, socialMedia: SocialMediaCre
     const { name, link, imageId } = socialMedia
 
     await db.connect()
-    await db.query('BEGIN;')
 
     await db.query(`
       UPDATE links SET
         name = $1,
         link = $2,
-        social_media = true
-      WHERE link_id = $3;
-    `, [name, link, socialMediaId])
-
-    // if (imageId) {
-    //   await db.query(`
-    //     UPDATE images SET
-    //     link_id = $1
-    //     WHERE image_id = $2;
-    //   `, [linkId, imageId])
-    // }
-
-    await db.query('COMMIT;')
+        social_media = true,
+        image_id = $3
+        WHERE link_id = $4;
+    `, [name, link, imageId, socialMediaId])
   } catch (e: any) {
     console.error(e)
     throw e

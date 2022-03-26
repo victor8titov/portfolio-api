@@ -48,8 +48,7 @@ const validateBody = [
           typeof item === 'object' &&
           item.type &&
           item.type.length < 11 &&
-          item.imageId &&
-          item.imageId.length < 11)
+          item.imageId)
     )
     .custom((value) => {
       const values = value.map((i: { type: string }) => i.type)
@@ -76,13 +75,13 @@ async function validateImagesId (req: express.Request, res: express.Response, ne
   try {
     const { avatars } = req.body
     if (!avatars) return next()
-    const imagesId = avatars.map((i: AvatarRequest) => i.imageId)
+    const imagesId: number[] = avatars.map((i: AvatarRequest) => parseInt(i.imageId))
     if (!imagesId) return next()
 
     const _imagesIdFromDatabase = await getListImagesId()
 
     const _checkImagesId = imagesId.every(
-      (_img: string) => _imagesIdFromDatabase.some(_imgFromDB => _imgFromDB === _img))
+      (id: number) => _imagesIdFromDatabase.some(_imgFromDB => parseInt(_imgFromDB) === id))
     if (!_checkImagesId) {
       return next(createError(400, 'Some from list images id is wrong', { source: 'imagesId' }))
     }

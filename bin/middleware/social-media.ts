@@ -75,7 +75,7 @@ async function validateImageId (req: express.Request, res: express.Response, nex
 
     const _imagesIdFromDatabase = await getListImagesId()
 
-    const _checkImagesId = _imagesIdFromDatabase.some(_imgFromDB => _imgFromDB === imageId)
+    const _checkImagesId = _imagesIdFromDatabase.some(_imgFromDB => parseInt(_imgFromDB) === parseInt(imageId))
     if (!_checkImagesId) {
       return next(createError(400, "Image's id  is wrong", { source: 'imageId' }))
     }

@@ -35,6 +35,45 @@ CREATE TABLE refresh_tokens (
     ON DELETE CASCADE
 );
 
+--- block IMAGE
+
+--- create table images ---
+DROP TABLE IF EXISTS images CASCADE;
+
+CREATE TABLE images (
+  image_id serial NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  PRIMARY KEY ( image_id )
+);
+
+--- create table templates_image ---
+DROP TABLE IF EXISTS templates_image CASCADE;
+
+CREATE TABLE templates_image (
+  name VARCHAR(8) NOT NULL,
+  width SMALLINT,
+  height SMALLINT,
+  PRIMARY KEY (name),
+  UNIQUE (width, height)
+);
+
+--- create table image division by template data after processing image
+DROP TABLE IF EXISTS images_division_by_template;
+
+CREATE TABLE images_division_by_template (
+  image_id INT NOT NULL,
+  name VARCHAR(200) NOT NULL,
+  template_name VARCHAR(8) DEFAULT '',
+  width SMALLINT,
+  height SMALLINT,
+  PRIMARY KEY ( image_id, name, template_name ),
+  FOREIGN KEY ( image_id )
+    REFERENCES images ( image_id )
+    ON DELETE CASCADE
+);
+
+--- END BLOCK IMAGE
+
 --- create table homepage ---
 DROP TABLE IF EXISTS homepage CASCADE;
 
@@ -46,6 +85,19 @@ CREATE TABLE homepage (
   PRIMARY KEY (language),
   FOREIGN KEY ( language )
     REFERENCES languages ( language )
+    ON DELETE CASCADE
+);
+
+--- create table avatars 
+DROP TABLE IF EXISTS avatars CASCADE;
+
+CREATE TABLE avatars (
+  id serial NOT NULL,
+  image_id INT NOT NULL,
+  type_avatar VARCHAR(10) DEFAULT NULL,
+  PRIMARY KEY ( id ),
+  FOREIGN KEY ( image_id )
+    REFERENCES images ( image_id )
     ON DELETE CASCADE
 );
 
@@ -62,6 +114,21 @@ CREATE TABLE projects (
   release_date DATE DEFAULT NULL,
   PRIMARY KEY ( project_id ),
   UNIQUE ( name )
+);
+
+--- create table images in project
+DROP TABLE IF EXISTS project_images;
+
+CREATE TABLE project_images (
+  project_id INT NOT NULL,
+  image_id INT NOT NULL,
+  PRIMARY KEY ( project_id, image_id ),
+  FOREIGN KEY ( project_id )
+    REFERENCES projects ( project_id )
+    ON DELETE CASCADE,
+  FOREIGN KEY ( image_id )
+    REFERENCES images ( image_id )
+    ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS projects_multilanguge_content CASCADE;
@@ -88,10 +155,14 @@ CREATE TABLE links (
   link VARCHAR(100) NOT NULL,
   social_media BOOLEAN DEFAULT NULL,
   project_id INT DEFAULT NULL,
+  image_id INT DEFAULT NULL,
   PRIMARY KEY (link_id),
   FOREIGN KEY (project_id)
     REFERENCES projects (project_id)
-    ON DELETE CASCADE
+    ON DELETE CASCADE,
+  FOREIGN KEY ( image_id )
+    REFERENCES images ( image_id )
+    ON DELETE SET NULL
 );
 
 --- table skills
@@ -159,62 +230,3 @@ CREATE TABLE multilingual_content (
     ON DELETE CASCADE
 );
 
---- create table templates_image ---
-DROP TABLE IF EXISTS templates_image CASCADE;
-
-CREATE TABLE templates_image (
-  name VARCHAR(8) NOT NULL,
-  width SMALLINT,
-  height SMALLINT,
-  PRIMARY KEY (name),
-  UNIQUE (width, height)
-);
-
---- create table images ---
-DROP TABLE IF EXISTS images;
-
-CREATE TABLE images (
-  id serial NOT NULL,
-  image_id VARCHAR(10) NOT NULL,
-  name VARCHAR(200) NOT NULL,
-  description TEXT NOT NULL DEFAULT '',
-  width SMALLINT,
-  height SMALLINT,
-  template_name VARCHAR(8) DEFAULT '',
-  project_id INT DEFAULT NULL,
-  link_id INT DEFAULT NULL,
-  type_avatar VARCHAR(10) DEFAULT NULL,
-  PRIMARY KEY (id),
-  UNIQUE (image_id, name),
-  FOREIGN KEY ( template_name )
-    REFERENCES templates_image ( name )
-    ON DELETE SET NULL,
-  FOREIGN KEY ( project_id )
-    REFERENCES projects (project_id)
-    ON DELETE SET NULL,
-  FOREIGN KEY ( link_id )
-    REFERENCES links ( link_id )
-    ON DELETE SET NULL
-);
-
-DROP TABLE IF EXISTS images_new;
-CREATE TABLE images_new (
-  image_id serial NOT NULL,
-  group_id VARCHAR(10) NOT NULL,
-  description TEXT NOT NULL DEFAULT '',
-  PRIMARY KEY ( image_id ),
-);
-
-DROP TABLE IF EXISTS images;
-CREATE TABLE images_groups (
-  id serial NOT NULL,
-  group_id VARCHAR(10) NOT NULL,
-  template_name VARCHAR(8) DEFAULT '',
-  name VARCHAR(200) NOT NULL,
-  width SMALLINT,
-  height SMALLINT,
-  PRIMARY KEY ( id ),
-  FOREIGN KEY ( template_name )
-    REFERENCES templates_image ( name )
-    ON DELETE SET NULL
-);

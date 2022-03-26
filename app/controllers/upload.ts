@@ -1,58 +1,54 @@
 import { NextFunction, Request, Response } from 'express'
 import createError from 'http-errors'
 import sharp from 'sharp'
-import { createImages, getTemplatesImage, Image, TemplateImage } from '../models/image'
-import { generateId } from '../../bin/common/generate-id'
-import { pathForImages } from '../../bin/common/paths'
-import { TypeErrors } from '../models/types'
+import { createImages, getTemplatesImage, ImageByTemplateCreation, TemplateImage } from '../models/image'
+import { generateBaseImageName, pathForImages } from '../../bin/common/paths'
 
 // TODO разрулить вопрос с типизацией тяниться с предыдушего middleware
 export async function uploadImage (req: any, res: Response, next: NextFunction) {
   try {
-    const _file: Express.Multer.File | undefined = req.file
-    if (!_file) return next(createError(400, 'Incorrect request', { type: TypeErrors.EMPTY_FILED, source: 'Field file' }))
+    const { name, description, file } = req.body
 
-    const _images: Omit<Image, 'url'>[] = []
+    const _aboutImage = await sharp(file.buffer).metadata()
 
-    const _templates: (Omit<TemplateImage, 'width'> & {width: number | null})[] = await getTemplatesImage()
+    const _imagesByTemplates: ImageByTemplateCreation[] = []
 
-    const _id = generateId(10)
+    /* save to original size but only convert to webp */
+    const _name = `${generateBaseImageName(name)}.webp`
+    sharp(file.buffer)
+      .webp()
+      .toFile(`${pathForImages}/${_name}`)
+    _imagesByTemplates.push({ name: _name, template: 'original' })
 
-    for (const template of _templates) {
-      const { width, height, name: templateName } = template
+    if (_aboutImage.width && _aboutImage.width > 200) {
+      /* create image according templates that have in db */
+      const _templates: TemplateImage[] = await getTemplatesImage()
+      if (_templates.length) {
+        for (const { width, height, name: template } of _templates) {
+          const _name = generateBaseImageName(name, template, width, height) + '.webp'
 
-      const _name = `${req.name}-${_id}${width ? '-' + width : ''}${height ? 'x' + height : ''}-${templateName}.webp`
+          sharp(file.buffer)
+            .resize(width, height)
+            .webp()
+            .toFile(`${pathForImages}/${_name}`)
 
-      sharp(_file.buffer)
-        .resize(template.width ? template.width : null, template.height)
-        .webp()
-        .toFile(`${pathForImages}/${_name}`)
-
-      _images.push(
-        {
-          id: _id,
-          name: _name,
-          description: req.description || '',
-          width,
-          height,
-          templateName
-        })
+          _imagesByTemplates.push(
+            {
+              name: _name,
+              template,
+              width,
+              height
+            })
+        }
+      }
     }
 
-    await createImages(_images)
-    return res.status(200).json({
-      id: _id,
-      items: _images.map((item) => {
-        return {
-          url: `/public/images/${item.name}`,
-          name: item.name,
-          description: item.description,
-          width: item.width,
-          height: item.height,
-          templateName: item.templateName
-        }
-      })
+    const _image = await createImages({
+      description,
+      divisionByTemplates: _imagesByTemplates
     })
+
+    return res.status(200).json(_image)
   } catch (e: any) {
     next(createError(500, e.message || 'Error processing data'))
   }

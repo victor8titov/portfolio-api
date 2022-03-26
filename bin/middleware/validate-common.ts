@@ -27,7 +27,7 @@ export async function validateImagesId (req: express.Request, res: express.Respo
     const _imagesIdFromDatabase = await getListImagesId()
 
     const _checkImagesId = imagesId.every(
-      (_img: string) => _imagesIdFromDatabase.some(_imgFromDB => _imgFromDB === _img))
+      (_img: string) => _imagesIdFromDatabase.some(_imgFromDB => parseInt(_imgFromDB) === parseInt(_img)))
     if (!_checkImagesId) {
       return next(createError(400, 'Some from list images id is wrong', { source: 'imagesId' }))
     }

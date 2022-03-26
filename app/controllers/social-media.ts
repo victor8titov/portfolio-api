@@ -14,7 +14,9 @@ export async function getAll (req: express.Request, res: express.Response, next:
 export async function create (req: express.Request, res: express.Response, next: NextFunction) {
   try {
     const { name, link, imageId } = req.body
+
     const id = await model.create({ name, link, imageId })
+
     res.status(200).json({ id, message: 'Social media link is created successfully' })
   } catch (e) {
     next(createError(500, 'Error during creating social media'))

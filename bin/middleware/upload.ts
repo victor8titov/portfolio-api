@@ -1,14 +1,16 @@
 import { NextFunction } from 'express'
+import { body, ValidationChain, param } from 'express-validator'
 import multer from 'multer'
 import createError from 'http-errors'
 import path from 'path'
 import { regExpCheckImages, supportedExtensionImages } from '../common/extensions-image'
 import { TypeErrors } from '../../app/models/types'
+import { validationErrorHandler } from './handler-error'
 
-export const fieldsForUpload = [
-  { name: 'name', maxCount: 1 },
-  { name: 'description', maxCount: 1 },
-  { name: 'file', maxCount: 1 }
+export const validateUpload = [
+  body('name').optional().trim().escape().isLength({ max: 100 }),
+  body('description').optional().trim().escape().default('').isLength({ max: 300 }),
+  validationErrorHandler
 ]
 
 const _upload = multer().any()
@@ -24,11 +26,26 @@ export function uploadImage (req: any, res: any, next: NextFunction) {
 
     const { files } = req
 
-    if (!files || !Array.isArray(files)) next(createError(400, 'Incorrect request', { type: TypeErrors.EMPTY_FILED, source: 'Field file' }))
-    if (files.length > 1) next(createError(400, 'Incorrect request', { type: TypeErrors.INCORRECT_VALUE, source: 'Field file' }))
+    if (!files || !Array.isArray(files)) {
+      next(createError(400, 'Incorrect request', { type: TypeErrors.EMPTY_FILED, source: 'Field file' }))
+    }
+
+    if (files.length > 1) {
+      next(createError(400, 'Incorrect request', { type: TypeErrors.INCORRECT_VALUE, source: 'Field file' }))
+    }
 
     const _file: Express.Multer.File = files.shift()
+
+    if (!_file) {
+      return next(createError(
+        400,
+        'Incorrect request',
+        { type: TypeErrors.EMPTY_FILED, source: 'Field file' }
+      ))
+    }
+
     const { ext, name } = path.parse(_file.originalname)
+    if (!req.body.name) req.body.name = name
 
     if (!regExpCheckImages.test(ext)) {
       return next(createError(
@@ -38,16 +55,7 @@ export function uploadImage (req: any, res: any, next: NextFunction) {
       ))
     }
 
-    req.file = _file
-
-    if (req.body.name) {
-      req.name = req.body.name
-    } else {
-      req.name = name
-    }
-
-    req.description = req.body.description || null
-
+    req.body.file = _file
     next()
   })
 }

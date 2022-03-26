@@ -11,12 +11,12 @@ import * as socialMediaControllers from '../controllers/social-media'
 import { validate as validateProjects } from '../../bin/middleware/projects'
 import { validate as validateHomepage } from '../../bin/middleware/homepage'
 import { auth, validate as validateAuth } from '../../bin/middleware/auth'
-import { validate as validateImage } from '../../bin/middleware/image'
+import { validateImage } from '../../bin/middleware/image'
 import { validate as validateSkills } from '../../bin/middleware/skills'
 import { validate as validateTimeStamps } from '../../bin/middleware/time-stamps'
 import { validate as validationSocialMedia } from '../../bin/middleware/social-media'
 import createError from 'http-errors'
-import { uploadImage } from '../../bin/middleware/upload'
+import { uploadImage, validateUpload } from '../../bin/middleware/upload'
 import { errorHandler } from '../../bin/middleware/handler-error'
 import { validateCallback } from '../../bin/middleware/callback'
 
@@ -62,10 +62,10 @@ router.post('/social-media', validationSocialMedia('create'), socialMediaControl
 router.put('/social-media/:socialMediaId', validationSocialMedia('update'), socialMediaControllers.update)
 router.delete('/social-media/:socialMediaId', validationSocialMedia('delete'), socialMediaControllers.deleteById)
 
-router.post('/upload/image', auth, uploadImage, uploadControllers.uploadImage)
+router.post('/upload/image', auth, validateUpload, uploadImage, uploadControllers.uploadImage)
 
-router.get('/image/:fileId', auth, validateImage, imageControllers.getImage)
-router.delete('/image/:fileId', auth, validateImage, imageControllers.deleteImage)
+router.get('/image/:fileId', auth, validateImage, imageControllers.getById)
+router.delete('/image/:fileId', auth, validateImage, imageControllers.deleteById)
 
 router.use(function (req: Request, res: Response, next: NextFunction) {
   next(createError(404))

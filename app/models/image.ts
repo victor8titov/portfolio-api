@@ -1,42 +1,40 @@
 import { Client } from 'pg'
+import format from 'pg-format'
 import { getUrlImage } from '../../bin/common/paths'
-import { AvatarRequest, AvatarResponse } from './homepage'
-
-type ImageLineDB = {
-  id: string
-  name: string
-  description: string
-  width: number
-  height: number | null
-  template: string
-  type: string
-  project?: string
-}
-
-export type Image = {
-  readonly id?: string
-  readonly name?: string
-  readonly description?: string | null
-  readonly width?: number | null
-  readonly height?: number | null
-  readonly templateName?: string | null
-  readonly url?: string
-}
 
 export type TemplateImage = {
   readonly name: string
-  readonly width: number
+  readonly width: number | null
   readonly height?: number | null
 }
 
-export type ImageSimple = Omit<Image, 'width' | 'height' | 'templateName'>
+export type ImageByTemplateView = {
+  url: string
+  name: string
+  template: string
+  width?: number | null | string
+  height?: number | null | string
+}
+
+export type ImageByTemplateCreation = Omit<ImageByTemplateView, 'url'>
+
+export type ImageView = {
+  id: string
+  description: string
+  divisionByTemplates: ImageByTemplateView[]
+}
+
+export type ImageCreation = Omit<ImageView, 'id' | 'divisionByTemplates'> & {
+  divisionByTemplates: ImageByTemplateCreation[]
+}
 
 export async function getTemplatesImage (): Promise<TemplateImage[]> {
   const db = new Client()
   try {
     await db.connect()
 
-    const { rows } = await db.query<TemplateImage>('SELECT * FROM templates_image;')
+    const { rows } =
+      await db.query<TemplateImage>('SELECT name, width, height FROM templates_image;')
 
     return rows
   } catch (e: any) {
@@ -47,20 +45,33 @@ export async function getTemplatesImage (): Promise<TemplateImage[]> {
   }
 }
 
-export async function getImages (id: string): Promise<Image[]> {
+export async function getImageById (id: string): Promise<ImageView> {
   const db = new Client()
   try {
     await db.connect()
 
-    const { rows } = await db.query<ImageLineDB>(`
-        SELECT image_id as id, name, description, width, height, template_name as template
-          FROM images WHERE image_id = '${id}';
-        `)
+    const { rows: _imagesList } = await db.query<{ id: string, description: string }>(`
+        SELECT image_id as id, description FROM images
+          WHERE image_id = $1;
+        `, [id])
+    const _image = _imagesList.shift()
 
-    return rows.map<Image>((item) => {
-      const { id, name, description, width, height, template: templateName = '' } = item
-      return { id, name, description, width, height, templateName, url: getUrlImage(name) }
-    })
+    if (!_image) {
+      throw new Error('Error during getting image entity')
+    }
+
+    const { rows: _divisionByTemplates } =
+      await db.query<{ name: string, template: string, width: string | null, height: string | null}>(`
+        SELECT name, template_name as template, width, height 
+          FROM images_division_by_template
+          WHERE image_id = $1
+          ORDER BY name;
+        `, [_image.id])
+
+    return {
+      ..._image,
+      divisionByTemplates: _divisionByTemplates.map(i => ({ ...i, url: getUrlImage(i.name) }))
+    }
   } catch (e: any) {
     console.error(e)
     throw new Error(e.message)
@@ -69,25 +80,28 @@ export async function getImages (id: string): Promise<Image[]> {
   }
 }
 
-export async function getImagesByProjectId (projectId: string): Promise<Image[]> {
-  const db = new Client()
-  try {
-    await db.connect()
+export async function getImageByIdWithoutConnectDB (db: Client, id: string): Promise<ImageView> {
+  const { rows: _imagesList } = await db.query<{ id: string, description: string }>(`
+        SELECT image_id as id, description FROM images
+          WHERE image_id = $1;
+        `, [id])
+  const _image = _imagesList.shift()
 
-    const { rows } = await db.query<ImageLineDB>(`
-        SELECT image_id as id, name, description, width, height, template_name as template
-          FROM images WHERE project_id = '${projectId}';
-        `)
+  if (!_image) {
+    throw new Error('Error during getting image entity')
+  }
 
-    return rows.map<Image>((item) => {
-      const { id, name, description, width, height, template: templateName = '' } = item
-      return { id, name, description, width, height, templateName, url: getUrlImage(name) }
-    })
-  } catch (e: any) {
-    console.error(e)
-    throw new Error(e.message)
-  } finally {
-    await db.end()
+  const { rows: _divisionByTemplates } =
+      await db.query<{ name: string, template: string, width: string | null, height: string | null}>(`
+        SELECT name, template_name as template, width, height 
+          FROM images_division_by_template
+          WHERE image_id = $1
+          ORDER BY name;
+        `, [_image.id])
+
+  return {
+    ..._image,
+    divisionByTemplates: _divisionByTemplates.map(i => ({ ...i, url: getUrlImage(i.name) }))
   }
 }
 
@@ -110,21 +124,46 @@ export async function getListImagesId (): Promise<string[]> {
   }
 }
 
-export async function createImages (images: Omit<Image, 'url'>[]): Promise<void> {
+export async function createImages (image: ImageCreation): Promise<ImageView> {
   const db = new Client()
   try {
+    const { description, divisionByTemplates } = image
     await db.connect()
 
-    const _values = images.map(item => {
-      const { id, name, description = '', width = null, height = null, templateName = '' } = item
-      return `('${id}', '${name}', '${description}', ${width}, ${height}, '${templateName}')`
-    })
+    await db.query('BEGIN;')
 
-    await db.query(`
-      INSERT INTO images (image_id, name, description, width, height, template_name)
-        VALUES ${_values.join(', ')};
-      `)
+    const { rows } = await db.query<{ id: string }>(`
+      INSERT INTO images
+        (description)  
+        VALUES
+        ($1)
+        RETURNING image_id as id;
+    `, [description])
+    const id = rows.shift()?.id
+
+    if (!id) {
+      await db.query('ROLLBACK;')
+      throw new Error('Error during creating image')
+    }
+
+    const _values = divisionByTemplates.map(i => [id, i.name, i.template, i.width, i.height])
+
+    const _query = format(`
+      INSERT INTO images_division_by_template
+        (image_id, name, template_name, width, height)
+        VALUES %L
+        RETURNING name, template_name as template, width, height;
+      `, _values)
+    const { rows: _divisionByTemplates } = await db.query<{ name: string, template: string, width: string, height: string}>(_query)
+
+    await db.query('COMMIT;')
+    return {
+      id,
+      description,
+      divisionByTemplates: _divisionByTemplates.map(i => ({ ...i, url: getUrlImage(i.name) }))
+    }
   } catch (e: any) {
+    await db.query('ROLLBACK;')
     console.error(e)
     throw new Error(e.message)
   } finally {
@@ -137,63 +176,7 @@ export async function deleteImages (id: string): Promise<void> {
   try {
     await db.connect()
 
-    await db.query(`DELETE FROM images WHERE image_id = '${id}';`)
-  } catch (e: any) {
-    console.error(e)
-    throw new Error(e.message)
-  } finally {
-    await db.end()
-  }
-}
-
-export async function updateAvatar (avatars: AvatarRequest[]): Promise<void> {
-  const db = new Client()
-  try {
-    await db.connect()
-
-    await db.query(`
-      UPDATE images SET
-        type_avatar = NULL;
-    `)
-
-    for (const avatar of avatars) {
-      await db.query(`
-        UPDATE images SET
-          type_avatar = '${avatar.type}'
-          WHERE image_id = '${avatar.imageId}';
-      `)
-    }
-  } catch (e: any) {
-    console.error(e)
-    throw new Error(e.message)
-  } finally {
-    await db.end()
-  }
-}
-
-export async function getAvatars (): Promise<AvatarResponse[]> {
-  const db = new Client()
-  try {
-    await db.connect()
-
-    const { rows: types } = await db.query<{type: string}>(`
-      SELECT type_avatar as type FROM images
-      WHERE type_avatar IS NOT NULL
-      GROUP BY type_avatar;
-    `)
-
-    const { rows } = await db.query<ImageLineDB>(`
-      SELECT image_id as id, name, description, width, height, template_name as template, type_avatar as type  
-        FROM images
-        WHERE type_avatar IS NOT NULL;
-    `)
-
-    return types.map(({ type }) => {
-      const images = rows.filter(itemFilter => itemFilter.type === type)
-      return {
-        type, images
-      }
-    })
+    await db.query('DELETE FROM images WHERE image_id = $1;', [id])
   } catch (e: any) {
     console.error(e)
     throw new Error(e.message)
