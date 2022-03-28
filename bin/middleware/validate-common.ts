@@ -19,23 +19,18 @@ export const validatePagination = [
   query('pageSize').optional()
 ]
 
-export async function validateImagesId (req: express.Request, res: express.Response, next: NextFunction) {
-  try {
-    const imagesId = req.body.imagesId
-    if (!imagesId) return next()
-
-    const _imagesIdFromDatabase = await imageModel.getListId()
-
-    const _checkImagesId = imagesId.every(
-      (_img: string) => _imagesIdFromDatabase.some(_imgFromDB => parseInt(_imgFromDB) === parseInt(_img)))
-    if (!_checkImagesId) {
-      return next(createError(400, 'Some from list images id is wrong', { source: 'imagesId' }))
+export async function checkImageIdsInDB (listId: (string | number)[]): Promise<boolean> {
+  const format = (list: (string | number)[]): string[] => list.map(item => {
+    if (typeof item === 'number') {
+      return item.toString()
     }
+    return item
+  })
+  const _listId = format(listId)
+  const _listIdFromDatabase = format(await imageModel.getListId())
 
-    next()
-  } catch (e) {
-    next(createError(500, 'Error is during validate images ID'))
-  }
+  return _listId.every(
+    id => _listIdFromDatabase.some(_idFromDB => _idFromDB === id))
 }
 
 export async function validateLanguageFromDescription (req: express.Request, res: express.Response, next: NextFunction) {

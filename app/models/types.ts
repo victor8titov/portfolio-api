@@ -19,7 +19,7 @@ export type ErrorBody = {
   type?: string
 }
 
-export type OptionsRequest = {
+export type Options = {
   readonly language?: Language
   readonly page?: number
   readonly pageSize?: number

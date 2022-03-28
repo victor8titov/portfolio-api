@@ -1,201 +1,156 @@
 import { Client } from 'pg'
 import format from 'pg-format'
-import { getUrlImage } from '../../bin/common/paths'
-import { ImageView } from './image'
-import { Language, ObjectWithLanguage, OptionsRequest } from './types'
+import Model from '.'
+import { imageModel, ImageView } from './image'
+import { languageModel } from './language'
+import { Language, ObjectWithLanguage, Options } from './types'
 
-type HomepageLineDB = {
-  title: string
-  subtitle: string
-  description: string
+export type AvatarCreation = {
+  readonly type: string
+  readonly imageId: string
 }
 
-export type AvatarRequest = {
-  type: string
-  imageId: string
+export type AvatarView = {
+  readonly type: string
+  readonly image: ImageView
 }
 
-export type AvatarResponse = {
-  type: string
-  image: ImageView
+export type HomePageView = {
+  readonly currentLanguage: Language
+  readonly languages: Language[]
+  readonly title: string
+  readonly subtitle: string
+  readonly description: string
+  readonly avatars: AvatarView[] | null
 }
 
-export type HomePage = {
-  // TODO нужно убрать или разбить на несколько типов
-  readonly language?: Language
-  readonly currentLanguage?: Language
-  readonly languages?: Language[]
-  readonly title?: string
-  readonly subtitle?: string
-  readonly description?: string
-  readonly avatars?: AvatarResponse[] | null
-}
-
-export type HomePageRequest = {
+export type HomePageCreation = {
   readonly title?: ObjectWithLanguage
   readonly subtitle?: ObjectWithLanguage
   readonly description?: ObjectWithLanguage
-  readonly avatars?: AvatarRequest[] | null
+  readonly avatars?: AvatarCreation[] | null
 }
 
-export async function getHomePage (options: OptionsRequest): Promise<HomePage | undefined> {
-  const db = new Client()
-  try {
-    const { language } = options
-    if (!language) return undefined
+class HomePageModel extends Model {
+  async get (options: Options): Promise<HomePageView | undefined> {
+    return this.connect(async (client) => {
+      const { language: currentLanguage } = options
+      if (!currentLanguage) return undefined
 
-    await db.connect()
+      const languages = await languageModel.queryGetAll(client)
 
-    const { rows } = await db.query<HomepageLineDB>(`
+      const { rows } = await client.query<{title: string, subtitle: string, description: string}>(`
       SELECT title, subtitle, description 
         FROM homepage 
-        WHERE language = '${language}';
-      `)
+        WHERE language = $1;
+      `, [currentLanguage])
 
-    const _line = rows.shift()
-    if (!_line) return undefined
-    const { title, subtitle, description } = _line
+      const _line = rows.shift()
+      if (!_line) return undefined
 
-    return { title, subtitle, description }
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
-  }
-}
+      const avatars = await this.queryGetAvatars(client)
 
-export async function createHomePage (homepage: HomePageRequest): Promise<void | Error> {
-  const db = new Client()
-  try {
-    const { title, subtitle, description } = homepage
-
-    await db.connect()
-
-    const { rows } = await db.query(`
-      SELECT count( * ) FROM homepage 
-        WHERE language IN (SELECT language FROM languages);
-    `)
-    if (rows.shift().count > 0) {
-      return new Error('Already exist homepage')
-    }
-
-    const { rows: languages } = await db.query<{ language: Language }>('SELECT language FROM languages;')
-
-    const values: string[] = []
-    languages.forEach(({ language }) => {
-      function getValue (field: ObjectWithLanguage | undefined): string { return field && field[language] ? field[language] : '' }
-      values.push(`('${language}', '${getValue(title)}', '${getValue(subtitle)}', '${getValue(description)}')`)
+      return {
+        currentLanguage,
+        languages,
+        ..._line,
+        avatars
+      }
     })
+  }
 
-    await db.query(`
-      INSERT INTO homepage 
-        (language, title, subtitle, description)
-        VALUES 
-        ${values.join(', ')};
+  async create (homepage: HomePageCreation): Promise<void | Error> {
+    return this.connect(async (client) => {
+      const { title, subtitle, description, avatars } = homepage
+
+      /* checking if it was created earlier */
+      const { rows } = await client.query(`
+        SELECT count( * ) FROM homepage 
+          WHERE language IN (SELECT language FROM languages);
       `)
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
-  }
-}
-
-export async function updateHomePage (homepage: HomePageRequest): Promise<void> {
-  const db = new Client()
-  try {
-    const { title, subtitle, description } = homepage
-
-    await db.connect()
-
-    const { rows: languages } = await db.query<{ language: Language }>('SELECT language FROM languages;')
-
-    for (const { language } of languages) {
-      function getValue (field: ObjectWithLanguage | undefined): string { return field && field[language] ? field[language] : '' }
-      await db.query(`
-        UPDATE homepage 
-          SET title = '${getValue(title)}',
-              subtitle = '${getValue(subtitle)}',
-              description = '${getValue(description)}'
-          WHERE language = '${language}';
-        `)
-    }
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
-  }
-}
-
-export async function updateAvatar (avatars: AvatarRequest[]): Promise<void> {
-  const db = new Client()
-  try {
-    await db.connect()
-
-    await db.query('DELETE FROM avatars;')
-
-    const _values = avatars.map(i => [i.imageId, i.type])
-    const _query = format(`
-      INSERT INTO avatars 
-        (image_id, type_avatar)
-        VALUES
-        %L;
-    `, _values)
-
-    await db.query(_query)
-  } catch (e: any) {
-    console.error(e)
-    throw new Error(e.message)
-  } finally {
-    await db.end()
-  }
-}
-
-export async function getAvatars (): Promise<AvatarResponse[]> {
-  const db = new Client()
-  try {
-    await db.connect()
-
-    const avatars: AvatarResponse[] = []
-
-    const { rows: listAvatars } = await db.query<{type: string, imageid: string}>(`
-      SELECT type_avatar as type, image_id as imageid FROM avatars
-    `)
-
-    for (const { imageid, type } of listAvatars) {
-      const { rows: imagesList } = await db.query<{ id: string, description: string }>(`
-        SELECT image_id as id, description FROM images
-          WHERE image_id = $1;
-        `, [imageid])
-      const image = imagesList.shift()
-
-      if (!image) {
-        throw new Error('Error during getting image entity')
+      if (rows.shift().count > 0) {
+        return new Error('Already exist homepage')
       }
 
-      const { rows: divisionByTemplates } =
-        await db.query<{ name: string, template: string, width: string | null, height: string | null}>(`
-          SELECT name, template_name as template, width, height 
-            FROM images_division_by_template
-            WHERE image_id = $1
-            ORDER BY name;
-          `, [image.id])
+      const languages = await languageModel.queryGetAll(client)
+
+      const _values: string[][] = []
+      languages.forEach((_language) => {
+        function getValue (field: ObjectWithLanguage | undefined): string { return field && field[_language] ? field[_language] : '' }
+        _values.push([_language, getValue(title), getValue(subtitle), getValue(description)])
+      })
+
+      /* save to homepage table */
+      const _query = format(`
+        INSERT INTO homepage 
+          (language, title, subtitle, description)
+          VALUES 
+          %L;
+        `, _values)
+      await client.query(_query)
+
+      /* update avatars data for avatars table */
+      await this.queryUpdateAvatars(client, avatars)
+    })
+  }
+
+  async update (homepage: HomePageCreation): Promise<void> {
+    return this.connect(async (client) => {
+      const { title, subtitle, description, avatars } = homepage
+
+      const languages = await languageModel.queryGetAll(client)
+
+      for (const language of languages) {
+        function getValue (field: ObjectWithLanguage | undefined): string { return field && field[language] ? field[language] : '' }
+        const _values = [getValue(title), getValue(subtitle), getValue(description), language]
+
+        await client.query(`
+          UPDATE homepage 
+            SET title = $1,
+                subtitle = $2,
+                description = $3
+            WHERE language = $4;
+        `, _values)
+      }
+
+      await this.queryUpdateAvatars(client, avatars)
+    })
+  }
+
+  async queryGetAvatars (client: Client): Promise<AvatarView[]> {
+    const avatars: AvatarView[] = []
+
+    const { rows: listAvatars } = await client.query<{type: string, image: string}>(`
+      SELECT type_avatar as type, image_id as image FROM avatars
+    `)
+
+    for (const { image: imageId, type } of listAvatars) {
+      const image = await imageModel.queryGetById(client, imageId)
 
       avatars.push({
         type: type,
-        image: {
-          ...image,
-          divisionByTemplates: divisionByTemplates.map(i => ({ ...i, url: getUrlImage(i.name) }))
-        }
+        image
       })
     }
+
     return avatars
-  } catch (e: any) {
-    console.error(e)
-    throw new Error(e.message)
-  } finally {
-    await db.end()
+  }
+
+  async queryUpdateAvatars (client: Client, avatars: AvatarCreation[] | null | undefined): Promise<void> {
+    await client.query('DELETE FROM avatars;')
+
+    if (avatars) {
+      const _values = avatars.map(i => [i.imageId, i.type])
+      const _query = format(`
+        INSERT INTO avatars 
+          (image_id, type_avatar)
+          VALUES
+          %L;
+      `, _values)
+
+      await client.query(_query)
+    }
   }
 }
+
+export const homePageModel = new HomePageModel()

@@ -2,7 +2,7 @@ import { Client } from 'pg'
 import format from 'pg-format'
 import Model from '.'
 import { getUrlImage } from '../../bin/common/paths'
-import { OptionsRequest, Pagination } from './types'
+import { Options, Pagination } from './types'
 
 export type TemplateImage = {
   readonly name: string
@@ -89,7 +89,7 @@ export class ImageModel extends Model {
     })
   }
 
-  async getList (option: OptionsRequest): Promise<ImageView[]> {
+  async getList (option: Options): Promise<ImageView[]> {
     return await this.connect(async (client) => {
       const { page = 1, pageSize = 100 } = option
 

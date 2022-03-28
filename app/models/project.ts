@@ -2,7 +2,7 @@ import { Client } from 'pg'
 import format from 'pg-format'
 import { getUrlImage } from '../../bin/common/paths'
 import { ImageView } from './image'
-import { Language, ObjectWithLanguage, OptionsRequest } from './types'
+import { Language, ObjectWithLanguage, Options } from './types'
 
 export type Link = {
   readonly name: string
@@ -123,7 +123,7 @@ export async function getProjectById (projectId: string, language: Language): Pr
   }
 }
 
-export async function getProjects (option: OptionsRequest): Promise<ProjectResponse[]> {
+export async function getProjects (option: Options): Promise<ProjectResponse[]> {
   const db = new Client()
   try {
     const { page, pageSize, language, sort } = option

@@ -1,10 +1,9 @@
 import express, { NextFunction, RequestHandler } from 'express'
 import escape from 'validator/lib/escape'
 import { body, ValidationChain } from 'express-validator'
-import { validateLanguage } from './validate-common'
+import { checkImageIdsInDB, validateLanguage } from './validate-common'
 import { repeatCheck } from '../common/check-repeat'
-import { AvatarRequest } from '../../app/models/homepage'
-import { imageModel } from '../../app/models/image'
+import { AvatarCreation } from '../../app/models/homepage'
 import createError from 'http-errors'
 import { validationErrorHandler } from './handler-error'
 
@@ -48,7 +47,9 @@ const validateBody = [
           typeof item === 'object' &&
           item.type &&
           item.type.length < 11 &&
-          item.imageId)
+          item.imageId &&
+          (typeof item.imageId === 'string' ||
+          typeof item.imageId === 'number'))
     )
     .custom((value) => {
       const values = value.map((i: { type: string }) => i.type)
@@ -75,14 +76,11 @@ async function validateImagesId (req: express.Request, res: express.Response, ne
   try {
     const { avatars } = req.body
     if (!avatars) return next()
-    const imagesId: number[] = avatars.map((i: AvatarRequest) => parseInt(i.imageId))
+
+    const imagesId: string[] = avatars.map((i: AvatarCreation) => i.imageId)
     if (!imagesId) return next()
 
-    const _imagesIdFromDatabase = await imageModel.getListId()
-
-    const _checkImagesId = imagesId.every(
-      (id: number) => _imagesIdFromDatabase.some(_imgFromDB => parseInt(_imgFromDB) === id))
-    if (!_checkImagesId) {
+    if (!await checkImageIdsInDB(imagesId)) {
       return next(createError(400, 'Some from list images id is wrong', { source: 'imagesId' }))
     }
 

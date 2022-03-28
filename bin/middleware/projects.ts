@@ -3,9 +3,10 @@ import escape from 'validator/lib/escape'
 import { body, ValidationChain, query, param } from 'express-validator'
 import createError from 'http-errors'
 import { getNameProjects, ProjectStatuses } from '../../app/models/project'
-import { validateImagesId, validateLanguage, validateLanguageFromDescription, validatePagination } from './validate-common'
+import { validateLanguage, validateLanguageFromDescription, validatePagination } from './validate-common'
 import { repeatCheck } from '../common/check-repeat'
 import { validationErrorHandler } from './handler-error'
+import { imageModel } from '../../app/models/image'
 
 export function validate (method: 'create' | 'getById' | 'getProjects' | 'put' | 'delete'): (ValidationChain | RequestHandler)[] {
   switch (method) {
@@ -147,5 +148,24 @@ async function isExistById (req: express.Request, res: express.Response, next: N
     next()
   } catch (e) {
     next(createError(500, "Error is during searching project's id"))
+  }
+}
+
+async function validateImagesId (req: express.Request, res: express.Response, next: NextFunction) {
+  try {
+    const imagesId = req.body.imagesId
+    if (!imagesId) return next()
+
+    const _imagesIdFromDatabase = await imageModel.getListId()
+
+    const _checkImagesId = imagesId.every(
+      (_img: string) => _imagesIdFromDatabase.some(_imgFromDB => parseInt(_imgFromDB) === parseInt(_img)))
+    if (!_checkImagesId) {
+      return next(createError(400, 'Some from list images id is wrong', { source: 'imagesId' }))
+    }
+
+    next()
+  } catch (e) {
+    next(createError(500, 'Error is during validate images ID'))
   }
 }

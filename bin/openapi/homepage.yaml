@@ -17,14 +17,14 @@ paths:
           name: language
           description: Data to obtain a content group
           schema:  
-            $ref: "api-doc.yaml#/components/schemas/Language"
+            $ref: 'api-doc.yaml#/components/schemas/Language'
       responses:
         200: 
           description: Request completed successfully
           content: 
             application/json:
               schema:
-                $ref: '#/components/schemas/HomePageResponse'
+                $ref: '#/components/schemas/HomePageView'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
@@ -42,7 +42,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/HomePageRequest'
+              $ref: '#/components/schemas/HomePageCreation'
       responses:
         200:
           description: OK. Data saved 
@@ -75,7 +75,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/HomePageRequest'
+              $ref: '#/components/schemas/HomePageCreation'
       responses:
         200:
           description: OK. Data Update 
@@ -100,122 +100,70 @@ paths:
  
 components:
   schemas:
-    HomePageBase: 
+    AvatarCreation: 
       type: object
       properties:
-        title: 
+        type:
           type: string
-          readOnly: true
-        subtitle: 
+          example: black
+        imageId:  
           type: string
-          readOnly: true
-        description:
+          example: 9
+    
+    AvatarView:
+      type: object
+      properties:
+        type: 
           type: string
-          readOnly: true
-      example:
-            title: Text for title main page
-            subtitle: Text for subtitle main page
-            description: text description for main page
-    HomePageRequest:
+          example: black
+        image: 
+          $ref: 'image.yaml#/components/schemas/Image'
+    
+    ObjectWithLanguages:
+      $ref: 'api-doc.yaml#/components/schemas/StringWithDivisionIntoLanguages'
+
+    HomePageCreation:
       allOf:
         - type: object
           properties:
             title: 
-              $ref: "api-doc.yaml#/components/schemas/StringWithDivisionIntoLanguages"
+              $ref: '#/components/schemas/ObjectWithLanguages'
             subtitle: 
-              $ref: "api-doc.yaml#/components/schemas/StringWithDivisionIntoLanguages"
+              $ref: '#/components/schemas/ObjectWithLanguages'
             description:
-              $ref: "api-doc.yaml#/components/schemas/StringWithDivisionIntoLanguages"
-          example:
-            title: {
-              en: 'text in English',
-              ru: 'На русском',
-            }
-            subtitle: {
-              en: 'text in English',
-              ru: 'На русском',
-            }
-            description: {
-              en: 'text in English',
-              ru: 'На русском',
-            }
-        - type: object
-          properties:
+              $ref: '#/components/schemas/ObjectWithLanguages'
             avatars:
               type: array
               items:
-                type: object
-                properties:
-                  type:
-                    type: string
-                  imageId:  
-                    type: string
-          example:
-            avatars: [
-              {
-                type: 'black',
-                imageId: 9,
-              }
-            ]
-    HomePageResponse:
+                $ref: '#/components/schemas/AvatarCreation'
+    
+    HomePageView:
       allOf:
         - type: object
           properties:
             currentLanguage:
-              $ref: "api-doc.yaml#/components/schemas/Language"
+              $ref: 'api-doc.yaml#/components/schemas/Language'
             languages:
               type: array
               items:
-                $ref: "api-doc.yaml#/components/schemas/Language"
-          example:
-            currentLanguage: 'en'
-            languages: [ 'ru', 'en' ]
-        - $ref: '#/components/schemas/HomePageBase'
+                $ref: 'api-doc.yaml#/components/schemas/Languages'
+            title: 
+              type: string
+              readOnly: true
+              example: Text for title main page
+            subtitle: 
+              type: string
+              readOnly: true
+              example: Text for subtitle main page
+            description:
+              type: string
+              readOnly: true
+              example: text description for main page
         - type: object
           properties:
             avatars:
               type: array
               items:
-                type: object
-                properties:
-                  type:
-                    type: string
-                  images:
-                    type: array
-                    items: 
-                      type: object
-                      properties:
-                        id: 
-                          type: string
-                        name: 
-                          type: string
-                        description:
-                          type: string
-                        templateName: 
-                          type: string
-                        width: 
-                          type: number
-                        height:
-                          type: number
-                        url: 
-                          type: string
-                      required:
-                        - url
-          example:
-            avatars:  [ 
-              { 
-                type: black,
-                images: [
-                  {
-                    id: 'xxxxxx',
-                    name: 'pic-500x500-mid.png',
-                    description: 'Photo is my when I was young',
-                    templateName: 'original', 
-                    width: 500, 
-                    height: 500, 
-                    url: 'public/images/pic-500x500-mid.png', 
-                  }
-                ]
-              }
-            ] 
+                $ref: '#/components/schemas/AvatarView'
+          
             

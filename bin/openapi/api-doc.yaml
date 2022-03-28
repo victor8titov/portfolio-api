@@ -76,12 +76,10 @@ components:
       properties:
         en: 
           type: string
+          example: 'Text in English'
         ru:
           type: string
-      example: {
-        en: 'Text in English',
-        ru: 'Текст на русском языке',
-      }
+          example: 'Текст на русском языке'
 
     Sort: 
       type: array
