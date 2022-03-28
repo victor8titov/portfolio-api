@@ -18,7 +18,7 @@ paths:
           name: page 
           schema: 
             type: number
-          example: 2
+          example: 1
         - in: query
           name: pageSize
           schema:
