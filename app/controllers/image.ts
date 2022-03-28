@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import fs from 'fs'
 import createError from 'http-errors'
-import * as model from '../models/image'
+import { imageModel, ImageView, ListImages } from '../models/image'
 import path from 'path'
 import { pathForImages } from '../../bin/common/paths'
 
@@ -9,9 +9,9 @@ export async function getById (req: Request, res: Response, next: NextFunction) 
   try {
     const fileId = req.params.fileId
 
-    const _image = await model.getImageById(fileId)
+    const _image = await imageModel.getById(fileId)
 
-    res.status(200).json(_image as model.ImageView)
+    res.status(200).json(_image as ImageView)
   } catch (e: any) {
     next(createError(500, 'Error processing data during getting images.'))
   }
@@ -22,11 +22,11 @@ export async function getImages (req: Request, res: Response, next: NextFunction
     const page = parseInt(req.query.page as string) || 1
     const pageSize = parseInt(req.query.pageSize as string) || 100
 
-    const _answer: model.ListImages = {}
-    const items = await model.getListImages({ page, pageSize })
+    const _answer: ListImages = {}
+    const items = await imageModel.getList({ page, pageSize })
 
     if (page && pageSize) {
-      const _count = await model.getCountImages()
+      const _count = await imageModel.getCount()
       const totalPages = Math.ceil(_count / pageSize)
 
       if (page > totalPages) {
@@ -52,7 +52,7 @@ export async function deleteById (req: Request, res: Response, next: NextFunctio
   try {
     const fileId = req.params.fileId
 
-    const image = await model.getImageById(fileId)
+    const image = await imageModel.getById(fileId)
 
     if (!image) {
       return next(createError(400, 'Wrong id', {
@@ -60,7 +60,7 @@ export async function deleteById (req: Request, res: Response, next: NextFunctio
       }))
     }
 
-    await model.deleteImages(fileId)
+    await imageModel.delete(fileId)
 
     function deleteFile (path: string): Promise<void> {
       return new Promise((resolve, reject) => {

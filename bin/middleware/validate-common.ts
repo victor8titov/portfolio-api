@@ -1,7 +1,7 @@
 import express, { NextFunction } from 'express'
 import createError from 'http-errors'
 import { query } from 'express-validator'
-import { getListImagesId } from '../../app/models/image'
+import { imageModel } from '../../app/models/image'
 import { Language } from '../../app/models/types'
 import { getLanguages } from '../../app/models/language'
 
@@ -24,7 +24,7 @@ export async function validateImagesId (req: express.Request, res: express.Respo
     const imagesId = req.body.imagesId
     if (!imagesId) return next()
 
-    const _imagesIdFromDatabase = await getListImagesId()
+    const _imagesIdFromDatabase = await imageModel.getListId()
 
     const _checkImagesId = imagesId.every(
       (_img: string) => _imagesIdFromDatabase.some(_imgFromDB => parseInt(_imgFromDB) === parseInt(_img)))

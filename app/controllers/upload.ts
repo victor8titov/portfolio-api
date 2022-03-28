@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import createError from 'http-errors'
 import sharp from 'sharp'
-import { createImages, getTemplatesImage, ImageByTemplateCreation, TemplateImage } from '../models/image'
+import { ImageByTemplateCreation, TemplateImage, imageModel } from '../models/image'
 import { generateBaseImageName, pathForImages } from '../../bin/common/paths'
 
 // TODO разрулить вопрос с типизацией тяниться с предыдушего middleware
@@ -22,7 +22,7 @@ export async function uploadImage (req: any, res: Response, next: NextFunction) 
 
     if (_aboutImage.width && _aboutImage.width > 200) {
       /* create image according templates that have in db */
-      const _templates: TemplateImage[] = await getTemplatesImage()
+      const _templates: TemplateImage[] = await imageModel.getTemplates()
       if (_templates.length) {
         for (const { width, height, name: template } of _templates) {
           const _name = generateBaseImageName(name, template, width, height) + '.webp'
@@ -43,7 +43,7 @@ export async function uploadImage (req: any, res: Response, next: NextFunction) 
       }
     }
 
-    const _image = await createImages({
+    const _image = await imageModel.create({
       description,
       divisionByTemplates: _imagesByTemplates
     })

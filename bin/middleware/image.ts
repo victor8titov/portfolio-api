@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { param } from 'express-validator'
-import { getListImagesId } from '../../app/models/image'
+import { imageModel } from '../../app/models/image'
 import { validationErrorHandler } from './handler-error'
 import createError from 'http-errors'
 import { validatePagination } from './validate-common'
@@ -19,7 +19,7 @@ export const validateImages = [
 async function isExistById (req: Request, res: Response, next: NextFunction) {
   try {
     const fileId = parseInt(req.params.fileId)
-    const listImageIdFromDB = await getListImagesId()
+    const listImageIdFromDB = await imageModel.getListId()
 
     const checking = listImageIdFromDB.some(item => parseInt(item) === fileId)
 

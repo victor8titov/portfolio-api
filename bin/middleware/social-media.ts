@@ -1,7 +1,7 @@
 import express, { NextFunction, RequestHandler } from 'express'
 import { body, ValidationChain, param } from 'express-validator'
 import createError from 'http-errors'
-import { getListImagesId } from '../../app/models/image'
+import { imageModel } from '../../app/models/image'
 import { getListIdSocialMedia } from '../../app/models/social-media'
 import { validationErrorHandler } from './handler-error'
 
@@ -73,7 +73,7 @@ async function validateImageId (req: express.Request, res: express.Response, nex
     const imageId = req.body.imageId
     if (!imageId) return next()
 
-    const _imagesIdFromDatabase = await getListImagesId()
+    const _imagesIdFromDatabase = await imageModel.getListId()
 
     const _checkImagesId = _imagesIdFromDatabase.some(_imgFromDB => parseInt(_imgFromDB) === parseInt(imageId))
     if (!_checkImagesId) {

@@ -4,7 +4,7 @@ import { body, ValidationChain } from 'express-validator'
 import { validateLanguage } from './validate-common'
 import { repeatCheck } from '../common/check-repeat'
 import { AvatarRequest } from '../../app/models/homepage'
-import { getListImagesId } from '../../app/models/image'
+import { imageModel } from '../../app/models/image'
 import createError from 'http-errors'
 import { validationErrorHandler } from './handler-error'
 
@@ -78,7 +78,7 @@ async function validateImagesId (req: express.Request, res: express.Response, ne
     const imagesId: number[] = avatars.map((i: AvatarRequest) => parseInt(i.imageId))
     if (!imagesId) return next()
 
-    const _imagesIdFromDatabase = await getListImagesId()
+    const _imagesIdFromDatabase = await imageModel.getListId()
 
     const _checkImagesId = imagesId.every(
       (id: number) => _imagesIdFromDatabase.some(_imgFromDB => parseInt(_imgFromDB) === id))

@@ -1,5 +1,5 @@
 import { Client } from 'pg'
-import { queryGetImageById, ImageView } from './image'
+import { ImageView } from './image'
 
 export type SocialMediaView = {
   name: string
@@ -34,12 +34,10 @@ export async function getListIdSocialMedia (): Promise<string[]> {
   }
 }
 
-export async function getAll (): Promise<SocialMediaList> {
+export async function getAll (): Promise<(Omit<SocialMediaView, 'icon'> & { image: string})[]> {
   const db = new Client()
   try {
     await db.connect()
-
-    const items: SocialMediaView[] = []
 
     const { rows } =
       await db.query<{ id: string, name: string, link: string, image: string}>(`
@@ -49,18 +47,7 @@ export async function getAll (): Promise<SocialMediaList> {
         ORDER BY name;
     `)
 
-    for (const { image: imageId, ...rest } of rows) {
-      let icon
-      if (imageId) {
-        icon = await queryGetImageById(db, imageId)
-      }
-      items.push({
-        ...rest,
-        ...(icon ? { icon } : {})
-      })
-    }
-
-    return { items }
+    return rows
   } catch (e: any) {
     console.error(e)
     throw e
