@@ -12,6 +12,8 @@ paths:
       tags:
         - callback
       description: Send callback form 
+      security:
+        - BearerAuth: []
       requestBody:
         description: Structure of new experience
         content:

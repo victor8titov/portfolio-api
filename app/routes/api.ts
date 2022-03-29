@@ -54,13 +54,13 @@ router.put('/time-stamp/:timeStampId', auth, validateTimeStamps('update'), timeS
 router.delete('/time-stamp/:timeStampId', auth, validateTimeStamps('deleteById'), timeStampControllers.deleteById)
 
 /* goal callback */
-router.post('/callback', validateCallback, callbackControllers.callback)
+router.post('/callback', auth, validateCallback, callbackControllers.callback)
 
 /* goal social-media */
 router.get('/social-media', socialMediaControllers.getAll)
-router.post('/social-media', validationSocialMedia('create'), socialMediaControllers.create)
-router.put('/social-media/:socialMediaId', validationSocialMedia('update'), socialMediaControllers.update)
-router.delete('/social-media/:socialMediaId', validationSocialMedia('delete'), socialMediaControllers.deleteById)
+router.post('/social-media', auth, validationSocialMedia('create'), socialMediaControllers.create)
+router.put('/social-media/:socialMediaId', auth, validationSocialMedia('update'), socialMediaControllers.update)
+router.delete('/social-media/:socialMediaId', auth, validationSocialMedia('delete'), socialMediaControllers.deleteById)
 
 router.post('/upload/image', auth, validateUpload, uploadImage, uploadControllers.uploadImage)
 

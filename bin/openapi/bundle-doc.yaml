@@ -774,6 +774,8 @@ paths:
       tags:
         - callback
       description: Send callback form
+      security:
+        - BearerAuth: []
       requestBody:
         description: Structure of new experience
         content:
@@ -853,6 +855,8 @@ paths:
       tags:
         - social-media
       description: Create new link social media
+      security:
+        - BearerAuth: []
       requestBody:
         description: Data for new link
         content:
@@ -887,6 +891,8 @@ paths:
       tags:
         - social-media
       description: Change one the social media
+      security:
+        - BearerAuth: []
       parameters:
         - in: path
           name: id
@@ -911,6 +917,8 @@ paths:
       tags:
         - social-media
       description: Delete one of Social media
+      security:
+        - BearerAuth: []
       parameters:
         - in: path
           name: id
