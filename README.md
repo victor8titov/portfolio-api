@@ -1,4 +1,4 @@
-# Portfolio backend side
+# Portfolio API
 
 Part of the Portfolio project. This is the server side. Communication with the application occurs through the REST API.
 
@@ -28,7 +28,10 @@ npm run build
 
 ```
 
+## build yaml files
 
-TODO
+```bash
 
-- для мульти языка зарефакторить prjects 
+npm run bundle-openapi
+
+```
