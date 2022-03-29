@@ -1,5 +1,7 @@
 import { Client } from 'pg'
 import format from 'pg-format'
+import Model from '.'
+import { languageModel } from './language'
 import { EventAndDate, Language, ObjectWithLanguage } from './types'
 
 export type TimeStampCreation = {
@@ -11,194 +13,141 @@ export type TimeStampCreation = {
 
 export type TimeStampView = Omit<Required<TimeStampCreation>, 'description'> & {
   id: string
-  currentLanguage: Language
   description: string
+  currentLanguage?: Language
 }
 
 export type ListTimeStamps = {
   languages: Language[]
   currentLanguage: Language
-  items: Omit<TimeStampView, 'currentLanguage'>[]
+  items: TimeStampView[]
 }
 
-export async function getNamesAndIdTimeStamps (): Promise<{ id: string, name: string }[]> {
-  const db = new Client()
-  try {
-    await db.connect()
-
-    const { rows } = await db.query(`
-      SELECT name, time_stamp_id as id FROM time_stamps;
+class TimeStampModel extends Model {
+  async getNamesAndId (): Promise<{ id: string, name: string }[]> {
+    return this.connect(async (client) => {
+      const { rows } = await client.query(`
+        SELECT name, time_stamp_id as id FROM time_stamps;
     `)
 
-    return rows
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
+      return rows
+    })
   }
-}
 
-export async function getListTimeStamps (language: Language): Promise<Omit<TimeStampView, 'currentLanguage'>[]> {
-  const db = new Client()
-  try {
-    await db.connect()
+  async getAll (language: Language): Promise<ListTimeStamps> {
+    return this.connect(async (client) => {
+      const { rows } =
+        await client.query<{id: string, name: string, link: string}>(`
+          SELECT time_stamp_id as id, name, link FROM time_stamps;
+        `)
 
-    const result: Omit<TimeStampView, 'currentLanguage'>[] = []
-    const { rows } = await db.query<{id: string, name: string, link: string}>('SELECT time_stamp_id as id, name, link FROM time_stamps;')
+      const items: TimeStampView[] = []
+      for (const { id: timeStampId, name, link } of rows) {
+        const description = await this.queryGetDescription(client, timeStampId, language)
 
-    for (const _timeStamp of rows) {
-      const _timeStampId = _timeStamp.id
+        const events = await this.queryEvents(client, timeStampId)
 
-      const { rows: descriptionList } = await db.query(`
-        SELECT content as description FROM multilingual_content 
-        WHERE time_stamp_id = $1 AND language = $2;
-      `, [_timeStampId, language])
+        items.push({
+          id: timeStampId,
+          name,
+          link,
+          description,
+          events
+        })
+      }
 
-      const { rows: eventsList } = await db.query<{date: string, status: string}>(`
-        SELECT date, status FROM events
-          WHERE time_stamp_id = $1;
-      `, [_timeStampId])
+      const languages = await languageModel.queryGetAll(client)
 
-      result.push({
-        ..._timeStamp,
-        description: descriptionList.shift()?.description || '',
-        events: eventsList || []
-      })
-    }
-    return result
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
+      return {
+        currentLanguage: language,
+        languages,
+        items
+      }
+    })
   }
-}
 
-export async function getTimeStampById (timeStampId: string, language: string): Promise<Omit<TimeStampView, 'currentLanguage'> | undefined> {
-  const db = new Client()
-  try {
-    await db.connect()
-
-    const { rows } = await db.query<{id: string, name: string, link: string}>(`
+  async getById (timeStampId: string, language: Language): Promise<TimeStampView | undefined> {
+    return this.connect(async (client) => {
+      const { rows } = await client.query<{id: string, name: string, link: string}>(`
       SELECT time_stamp_id as id, name, link FROM time_stamps
         WHERE time_stamp_id = $1;
       `, [timeStampId])
 
-    const _timeStamp = rows.shift()
-    if (!_timeStamp) return undefined
+      const _timeStamp = rows.shift()
+      if (!_timeStamp) return undefined
 
-    const { rows: descriptionList } = await db.query(`
-      SELECT content as description FROM multilingual_content 
-        WHERE time_stamp_id = $1 AND language = $2;
-      `, [timeStampId, language])
+      const description = await this.queryGetDescription(client, _timeStamp.id, language)
 
-    const { rows: eventsList } = await db.query<{date: string, status: string}>(`
-      SELECT date, status FROM events
-        WHERE time_stamp_id = $1;
-      `, [timeStampId])
+      const events = await this.queryEvents(client, _timeStamp.id)
 
-    return {
-      ..._timeStamp,
-      description: descriptionList.shift()?.description || '',
-      events: eventsList || []
-    }
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
+      return {
+        ..._timeStamp,
+        description,
+        events,
+        currentLanguage: language
+      }
+    })
   }
-}
 
-export async function createTimeStamp (timeStamp: TimeStampCreation): Promise<number> {
-  const db = new Client()
-  try {
-    const { name, link, events, description } = timeStamp
+  async create (timeStamp: TimeStampCreation): Promise<number> {
+    return this.connectWitTransaction(async (client) => {
+      const { name, link, events, description } = timeStamp
 
-    await db.connect()
-
-    await db.query('BEGIN;')
-
-    const { rows: timeStampListId } = await db.query(`
-      INSERT INTO time_stamps
-        (name, link)
-        VALUES
-        ($1, $2)
-        RETURNING time_stamp_id as id;
-    `, [name, link])
-
-    const timeStampId = timeStampListId.shift().id
-
-    if (!timeStampId) {
-      await db.query('ROLLBACK;')
-      throw new Error('Error during creating time stamp entity')
-    }
-
-    /* creating description */
-    if (description) {
-      const _languages = Object.keys(description)
-
-      const _values = _languages.map((_language) =>
-        [timeStampId, _language, description[_language as Language]])
-
-      const _query = format(`
-        INSERT INTO multilingual_content
-          (time_stamp_id, language, content)
-          VALUES 
-          %L;
-        `, _values)
-
-      await db.query(_query)
-    }
-
-    /* creating events */
-    if (events) {
-      const _values = events.map(i => [i.date, i.status, timeStampId])
-
-      const _query = format(`
-        INSERT INTO events
-          (date, status, time_stamp_id)
+      const { rows: timeStampListId } = await client.query(`
+        INSERT INTO time_stamps
+          (name, link)
           VALUES
-          %L;
-      `, _values)
-      await db.query(_query)
-    }
+          ($1, $2)
+          RETURNING time_stamp_id as id;
+      `, [name, link])
 
-    await db.query('COMMIT;')
-    return timeStampId
-  } catch (e: any) {
-    await db.query('ROLLBACK;')
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
+      const timeStampId = timeStampListId.shift().id
+
+      if (!timeStampId) {
+        throw new Error('Error during creating time stamp entity')
+      }
+
+      await this.queryUpdateDescription(client, timeStampId, description)
+
+      await this.queryUpdateEvents(client, timeStampId, events)
+
+      return timeStampId
+    })
   }
-}
 
-export async function updateTimeStamp (timeStampId: string, timeStamp: TimeStampCreation): Promise<void> {
-  const db = new Client()
-  try {
-    const { name, link, events, description } = timeStamp
-    await db.connect()
+  async update (timeStampId: string, timeStamp: TimeStampCreation): Promise<void> {
+    return this.connectWitTransaction(async (client) => {
+      const { name, link, events, description } = timeStamp
 
-    await db.query('BEGIN;')
+      await client.query(`
+        UPDATE time_stamps SET 
+          name = $1,
+          link = $2
+          WHERE time_stamp_id = $3;
+      `, [name, link, timeStampId])
 
-    await db.query(`
-      UPDATE time_stamps SET 
-        name = $1,
-        link = $2
-        WHERE time_stamp_id = $3;
-    `, [name, link, timeStampId])
+      await this.queryUpdateDescription(client, timeStampId, description)
 
-    /* delete all description connected with time stamp entity */
-    await db.query(`
+      await this.queryUpdateEvents(client, timeStampId, events)
+    })
+  }
+
+  async delete (timeStampId: string): Promise<void> {
+    return this.connect(async (client) => {
+      await client.query(`
+      DELETE FROM time_stamps
+        WHERE time_stamp_id = $1
+    `, [timeStampId])
+    })
+  }
+
+  async queryUpdateDescription (client: Client, timeStampId: string, description: ObjectWithLanguage | undefined | null): Promise<void> {
+    await client.query(`
       DELETE FROM multilingual_content
         WHERE time_stamp_id = $1;  
     `, [timeStampId])
 
-    /* creating description */
-    if (description) {
+    if (description && Object.keys(description).length) {
       const _languages = Object.keys(description)
 
       const _values = _languages.map((_language) =>
@@ -210,51 +159,47 @@ export async function updateTimeStamp (timeStampId: string, timeStamp: TimeStamp
           VALUES 
           %L;
         `, _values)
-
-      await db.query(_query)
+      await client.query(_query)
     }
+  }
 
+  async queryUpdateEvents (client: Client, timeStampId: string, events: EventAndDate[] | undefined | null): Promise<void> {
     /* delete all events that connecting with time stamp entity */
-    await db.query(`
-      DELETE FROM events
-        WHERE time_stamp_id = $1;
-    `, [timeStampId])
+    await client.query(`
+     DELETE FROM events
+       WHERE time_stamp_id = $1;
+   `, [timeStampId])
 
     /* creating events */
-    if (events) {
+    if (events && events.length) {
       const _values = events.map(i => [i.date, i.status, timeStampId])
 
       const _query = format(`
-        INSERT INTO events
-          (date, status, time_stamp_id)
-          VALUES
-          %L;
-      `, _values)
-      await db.query(_query)
+       INSERT INTO events
+         (date, status, time_stamp_id)
+         VALUES
+         %L;
+     `, _values)
+      await client.query(_query)
     }
-    await db.query('COMMIT;')
-  } catch (e: any) {
-    await db.query('ROLLBACK;')
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
+  }
+
+  async queryGetDescription (client: Client, timeStampId: string, language: Language): Promise<string> {
+    const { rows } = await client.query(`
+        SELECT content as description FROM multilingual_content 
+        WHERE time_stamp_id = $1 AND language = $2;
+      `, [timeStampId, language])
+    return rows.shift()?.description || ''
+  }
+
+  async queryEvents (client: Client, timeStampId: string): Promise<EventAndDate[]> {
+    const { rows } = await client.query<{date: string, status: string}>(`
+    SELECT date, status FROM events
+      WHERE time_stamp_id = $1;
+  `, [timeStampId])
+
+    return rows || []
   }
 }
 
-export async function deleteTimeStampById (timeStampId: string): Promise<void> {
-  const db = new Client()
-  try {
-    await db.connect()
-
-    await db.query(`
-      DELETE FROM time_stamps
-        WHERE time_stamp_id = $1
-    `, [timeStampId])
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
-  }
-}
+export const timeStampModel = new TimeStampModel()

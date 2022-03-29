@@ -4,7 +4,7 @@ import { body, ValidationChain, param } from 'express-validator'
 import createError from 'http-errors'
 import { validateEvents, validateLanguage, validateLanguageFromDescription } from './validate-common'
 import { validationErrorHandler } from './handler-error'
-import { getNamesAndIdTimeStamps } from '../../app/models/time-stamps'
+import { timeStampModel } from '../../app/models/time-stamps'
 
 export function validate (method: 'getAll' | 'getById' | 'create' | 'update' | 'deleteById'): (ValidationChain | RequestHandler)[] {
   switch (method) {
@@ -80,10 +80,10 @@ const validateId = [
 
 async function isExistById (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const timeStampId = parseInt(req.params.timeStampId)
-    const _timeStampListId = await getNamesAndIdTimeStamps()
+    const timeStampId = req.params.timeStampId?.toString()
+    const _timeStampListId = await timeStampModel.getNamesAndId()
 
-    const isExist = _timeStampListId.some(item => parseInt(item.id) === timeStampId)
+    const isExist = _timeStampListId.some(item => item.id?.toString() === timeStampId)
 
     if (!isExist) {
       return next(createError(400, 'Time stamp with such Id does not found', { source: 'timeStampId' }))
