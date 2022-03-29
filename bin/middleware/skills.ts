@@ -4,7 +4,7 @@ import { body, ValidationChain, param } from 'express-validator'
 import createError from 'http-errors'
 import { validateLanguage, validateLanguageFromDescription } from './validate-common'
 import { validationErrorHandler } from './handler-error'
-import { getNamesSkill } from '../../app/models/skills'
+import { skillModel } from '../../app/models/skills'
 
 export function validate (method: 'getSkills' | 'getById' | 'create' | 'update' | 'delete'): (ValidationChain | RequestHandler)[] {
   switch (method) {
@@ -73,11 +73,11 @@ const validateId = [
 
 async function validateName (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const skillId: string | number = req.params.skillId ?? -1
-    const _namesOfExistSkills = await getNamesSkill()
+    const skillId: string | number = req.params.skillId || ''
+    const _nameFromDB = await skillModel.getSkillName()
 
-    const _checkName = _namesOfExistSkills.some(
-      item => item.name === req.body.name && parseInt(item.id) !== parseInt(skillId))
+    const _checkName = _nameFromDB.some(
+      item => item.name === req.body.name && item.id?.toString() !== skillId?.toString())
 
     if (_checkName) {
       return next(createError(400, 'Skill with such name is exist.', { source: 'name' }))
@@ -91,10 +91,10 @@ async function validateName (req: express.Request, res: express.Response, next: 
 
 async function isExistById (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const skillId = parseInt(req.params.skillId)
-    const _skillsFromDatabase = await getNamesSkill()
+    const skillId: string | number = req.params.skillId
+    const idFromDB = await skillModel.getSkillName()
 
-    const isExist = _skillsFromDatabase.some(item => parseInt(item.id) === skillId)
+    const isExist = idFromDB.some(item => item.id?.toString() === skillId.toString())
 
     if (!isExist) {
       return next(createError(400, 'Skill with such Id does not found', { source: 'skillId' }))

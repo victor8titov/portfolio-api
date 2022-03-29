@@ -1,32 +1,14 @@
 import express, { NextFunction } from 'express'
 import createError from 'http-errors'
-import { getLanguages } from '../models/language'
-import * as model from '../models/skills'
-import { ListSkillsResponse } from '../models/skills'
+import { ListSkillsResponse, skillModel, SkillView } from '../models/skills'
 import { Language } from '../models/types'
 
 export async function getSkills (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const language = req.query.language
+    const { language } = req.query
+    const skills = await skillModel.getAll(language as Language)
 
-    const _supportedLanguages = await getLanguages()
-    const _checkingLanguage = _supportedLanguages.some(_lang => language === _lang)
-    if (!_checkingLanguage) {
-      const _message = `The language is incorrect, possible ${_supportedLanguages.join(', ')}`
-      return next(createError(400, _message, { source: 'language' }))
-    }
-
-    const skills = await model.getSkills(language as Language)
-
-    const groups = await model.getGroups()
-
-    const response: ListSkillsResponse = {
-      currentLanguage: language as Language,
-      languages: _supportedLanguages,
-      groups,
-      items: skills
-    }
-    res.status(200).json(response)
+    res.status(200).json(skills as ListSkillsResponse)
   } catch (e) {
     next(createError(500, 'Error is during getting skills'))
   }
@@ -35,27 +17,15 @@ export async function getSkills (req: express.Request, res: express.Response, ne
 export async function getSkill (req: express.Request, res: express.Response, next: NextFunction) {
   try {
     const language = req.query.language
-
-    const _supportedLanguages = await getLanguages()
-    const _checkingLanguage = _supportedLanguages.some(_lang => language === _lang)
-    if (!_checkingLanguage) {
-      const _message = `The language is incorrect, possible ${_supportedLanguages.join(', ')}`
-      return next(createError(400, _message, { source: 'language' }))
-    }
-
     const skillId = req.params.skillId
 
-    const skill = await model.getSkillById(skillId, language as Language)
+    const skill = await skillModel.getById(skillId, language as Language)
 
     if (!skill) {
       return next(createError(400, 'Skill with such id does not exists'))
     }
 
-    res.status(200).json({
-      currentLanguage: language,
-      languages: _supportedLanguages,
-      ...skill
-    })
+    res.status(200).json(skill as SkillView)
   } catch (e) {
     next(createError(500, 'Error is during getting skill'))
   }
@@ -63,7 +33,7 @@ export async function getSkill (req: express.Request, res: express.Response, nex
 
 export async function create (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const id = await model.createSkill({ ...req.body })
+    const id = await skillModel.create({ ...req.body })
 
     res.status(200).json({
       id,
@@ -78,7 +48,8 @@ export async function update (req: express.Request, res: express.Response, next:
   try {
     const skillId = req.params.skillId
 
-    await model.updateSkill(skillId, { ...req.body })
+    await skillModel.update(skillId, { ...req.body })
+
     res.status(200).json({
       id: skillId,
       message: 'Update made successfully'
@@ -92,7 +63,8 @@ export async function deleteSkill (req: express.Request, res: express.Response, 
   try {
     const skillId = req.params.skillId
 
-    await model.deleteSkill(skillId)
+    await skillModel.deleteById(skillId)
+
     res.status(200).json({
       id: skillId,
       message: 'Skill deleted successfully'
