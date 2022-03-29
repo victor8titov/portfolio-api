@@ -29,7 +29,7 @@ export async function getImages (req: Request, res: Response, next: NextFunction
       const _count = await imageModel.getCount()
       const totalPages = Math.ceil(_count / pageSize)
 
-      if (page > totalPages) {
+      if (page > totalPages && totalPages) {
         return next(createError(400, 'Page number outside', { source: 'Param page' }))
       }
 

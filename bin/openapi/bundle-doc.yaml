@@ -139,27 +139,19 @@ paths:
                       languages:
                         type: array
                         items:
-                          $ref: '#/components/schemas/Language'
-                    example:
-                      currentLanguage: en
-                      languages:
-                        - ru
-                        - en
-                  - type: object
-                    properties:
+                          $ref: '#/components/schemas/Languages'
                       title:
                         type: string
                         readOnly: true
+                        example: Text for title main page
                       subtitle:
                         type: string
                         readOnly: true
+                        example: Text for subtitle main page
                       description:
                         type: string
                         readOnly: true
-                    example:
-                      title: Text for title main page
-                      subtitle: Text for subtitle main page
-                      description: text description for main page
+                        example: text description for main page
                   - type: object
                     properties:
                       avatars:
@@ -169,38 +161,9 @@ paths:
                           properties:
                             type:
                               type: string
-                            images:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  id:
-                                    type: string
-                                  name:
-                                    type: string
-                                  description:
-                                    type: string
-                                  templateName:
-                                    type: string
-                                  width:
-                                    type: number
-                                  height:
-                                    type: number
-                                  url:
-                                    type: string
-                                required:
-                                  - url
-                    example:
-                      avatars:
-                        - type: black
-                          images:
-                            - id: xxxxxx
-                              name: pic-500x500-mid.png
-                              description: Photo is my when I was young
-                              templateName: original
-                              width: 500
-                              height: 500
-                              url: public/images/pic-500x500-mid.png
+                              example: black
+                            image:
+                              $ref: '#/components/schemas/LinkView/properties/icon'
         '400':
           $ref: '#/components/responses/4XX'
         '500':
@@ -258,18 +221,6 @@ paths:
                       $ref: '#/components/schemas/StringWithDivisionIntoLanguages'
                     description:
                       $ref: '#/components/schemas/StringWithDivisionIntoLanguages'
-                  example:
-                    title:
-                      en: text in English
-                      ru: На русском
-                    subtitle:
-                      en: text in English
-                      ru: На русском
-                    description:
-                      en: text in English
-                      ru: На русском
-                - type: object
-                  properties:
                     avatars:
                       type: array
                       items:
@@ -277,27 +228,13 @@ paths:
                         properties:
                           type:
                             type: string
+                            example: black
                           imageId:
                             type: string
-                  example:
-                    avatars:
-                      - type: black
-                        imageId: 9
+                            example: 9
       responses:
         '200':
-          description: OK. Data Update
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  message:
-                    type: string
-                example:
-                  id: 3
-                  message: Data for home page successful updated
+          $ref: '#/components/responses/200AfterSuccessfulChangesEntity'
         '400':
           $ref: '#/components/responses/4XX'
         '401':
@@ -334,25 +271,27 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  pagination:
-                    $ref: '#/components/schemas/PaginationInResponse'
-                  sorted:
-                    $ref: '#/components/schemas/Sort'
-                  items:
-                    type: array
-                    items:
-                      allOf:
-                        - type: object
-                          required:
-                            - id
-                          properties:
-                            id:
-                              type: string
-                          example:
-                            id: 10
-                        - $ref: '#/paths/~1project~1%7Bid%7D/get/responses/200/content/application~1json/schema/allOf/1'
+                allOf:
+                  - type: object
+                    properties:
+                      languages:
+                        $ref: '#/components/schemas/Languages'
+                      currentLanguage:
+                        $ref: '#/components/schemas/Language'
+                  - type: object
+                    properties:
+                      sorted:
+                        $ref: '#/components/schemas/Sort'
+                  - type: object
+                    properties:
+                      pagination:
+                        $ref: '#/components/schemas/PaginationInResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/paths/~1project~1%7Bid%7D/get/responses/200/content/application~1json/schema/allOf/1'
         '400':
           $ref: '#/components/responses/4XX'
         '500':
@@ -368,80 +307,45 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                description:
-                  type: object
+              allOf:
+                - type: object
                   properties:
-                    ru:
+                    name:
                       type: string
-                    en:
+                      example: name project
+                    type:
                       type: string
-                type:
-                  type: string
-                stack:
-                  type: array
-                  items:
-                    type: string
-                spendTime:
-                  type: string
-                events:
-                  $ref: '#/components/schemas/Events'
-                imagesId:
-                  type: array
-                  items:
-                    type: string
-                links:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      name:
+                      example: type
+                    stack:
+                      type: array
+                      items:
                         type: string
-                      link:
+                      example:
+                        - html
+                        - css
+                    spendTime:
+                      type: string
+                      example: string may be like 2 days
+                    events:
+                      $ref: '#/components/schemas/Events'
+                  required:
+                    - name
+                - type: object
+                  properties:
+                    description:
+                      $ref: '#/components/schemas/StringWithDivisionIntoLanguages'
+                    imagesId:
+                      type: array
+                      items:
                         type: string
-              required:
-                - name
-              example:
-                name: Organic
-                description:
-                  en: description in English
-                  ru: description in Russian
-                type: template
-                stack:
-                  - html
-                  - css
-                spendTime: 2 days
-                events:
-                  - date: '2222-11-11'
-                    status: release
-                links:
-                  - name: github
-                    link: 'http://github.com/pupkin/project'
-                  - name: live project
-                    link: 'http://somedomain.com'
-                imagesId:
-                  - rlxkglndl
-                  - xldkhsoox
+                        example: 1
+                    links:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/LinkCreation'
       responses:
         '200':
-          description: Entity project has been successfully created
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - id
-                properties:
-                  id:
-                    type: string
-                  message:
-                    type: string
-                example:
-                  id: 11
-                  message: Entity project has been successfully created
+          $ref: '#/components/responses/200AfterSuccessfulChangesEntity'
         '400':
           $ref: '#/components/responses/4XX'
         '500':
@@ -469,86 +373,25 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - type: object
-                    required:
-                      - id
-                    properties:
-                      id:
-                        type: string
-                    example:
-                      id: 10
-                  - type: object
-                    properties:
-                      languages:
-                        $ref: '#/components/schemas/Languages'
-                      currentLanguage:
-                        $ref: '#/components/schemas/Language'
-                      name:
-                        type: string
-                      description:
-                        type: string
-                      type:
-                        type: string
-                      stack:
-                        type: array
-                        items:
-                          type: string
-                      spendTime:
-                        type: string
-                      events:
-                        $ref: '#/components/schemas/Events'
-                      images:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            templateName:
-                              type: string
-                            width:
-                              type: number
-                            height:
-                              type: number
-                            url:
-                              type: string
-                            description:
-                              type: string
-                          required:
-                            - url
-                      links:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            name:
-                              type: string
-                            link:
-                              type: string
-                    example:
-                      language:
-                        - en
-                        - ru
-                      currentLanguage: ru
-                      name: Organic
-                      description: description in Russian
-                      type: template
-                      stack:
-                        - html
-                        - css
-                      spendTime: time
-                      events:
-                        - date: '2222-11-11'
-                          status: release
-                      links:
-                        - name: github
-                          link: 'http://github.com/pupkin/project'
-                        - name: live project
-                          link: 'http://somedomain.com'
-                      images:
-                        - templateName: original
-                          width: 500
-                          height: 500
-                          url: public/images/pic-500x500-mid.png
-                          description: Photo is my when I was young
+                  - $ref: '#/paths/~1projects/get/responses/200/content/application~1json/schema/allOf/0'
+                  - allOf:
+                      - type: object
+                        properties:
+                          id:
+                            type: string
+                            example: 5
+                          description:
+                            type: string
+                            example: description in Russian
+                          images:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/LinkView/properties/icon'
+                          links:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/LinkView'
+                      - $ref: '#/paths/~1projects/post/requestBody/content/application~1json/schema/allOf/0'
         '400':
           $ref: '#/components/responses/4XX'
         '500':
@@ -574,21 +417,7 @@ paths:
               $ref: '#/paths/~1projects/post/requestBody/content/application~1json/schema'
       responses:
         '200':
-          description: Project change has passed successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - id
-                properties:
-                  id:
-                    type: string
-                  message:
-                    type: string
-                example:
-                  id: 11
-                  message: Project change has passed successfully
+          $ref: '#/components/responses/200AfterSuccessfulChangesEntity'
         '400':
           $ref: '#/components/responses/4XX'
         '500':
@@ -608,21 +437,7 @@ paths:
           description: Id for find project for delete
       responses:
         '200':
-          description: Successful deleted the project
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - id
-                properties:
-                  id:
-                    type: string
-                  message:
-                    type: string
-                example:
-                  id: 10
-                  message: Successful deleted the project
+          $ref: '#/components/responses/200AfterSuccessfulChangesEntity'
         '400':
           $ref: '#/components/responses/4XX'
         '500':
@@ -1137,40 +952,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    example: 1
-                  description:
-                    type: string
-                    example: Description image. It can be useful for alt properties in img tag
-                  divisionByTemplates:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        url:
-                          type: string
-                          example: public/images/pic-500x500-mid.png
-                        width:
-                          type: string
-                          example: 500
-                        height:
-                          type: string
-                          example: 500
-                        name:
-                          type: string
-                          example: 'pic-500x500-mid.png,'
-                        template:
-                          type: string
-                          example: mid
-                      required:
-                        - url
-                        - name
-                required:
-                  - id
-                  - items
+                $ref: '#/components/schemas/LinkView/properties/icon'
         '400':
           $ref: '#/components/responses/4XX'
         '401':
@@ -1189,7 +971,7 @@ paths:
           name: page
           schema:
             type: number
-          example: 2
+          example: 1
         - in: query
           name: pageSize
           schema:
@@ -1208,7 +990,7 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: '#/paths/~1upload~1image/post/responses/200/content/application~1json/schema'
+                      $ref: '#/components/schemas/LinkView/properties/icon'
         '400':
           $ref: '#/components/responses/4XX'
         '500':
@@ -1233,7 +1015,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/paths/~1upload~1image/post/responses/200/content/application~1json/schema'
+                $ref: '#/components/schemas/LinkView/properties/icon'
         '400':
           $ref: '#/components/responses/4XX'
         '500':
@@ -1281,6 +1063,66 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    LinkView:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Github
+        link:
+          type: string
+          example: 'http://example-link.dd'
+        icon:
+          type: object
+          properties:
+            id:
+              type: string
+              example: 1
+            description:
+              type: string
+              example: Description image. It can be useful for alt properties in img tag
+            divisionByTemplates:
+              type: array
+              items:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    example: public/images/pic-500x500-mid.png
+                  width:
+                    type: string
+                    example: 500
+                  height:
+                    type: string
+                    example: 500
+                  name:
+                    type: string
+                    example: 'pic-500x500-mid.png,'
+                  template:
+                    type: string
+                    example: mid
+                required:
+                  - url
+                  - name
+          required:
+            - id
+            - items
+      required:
+        - link
+    LinkCreation:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Github
+        link:
+          type: string
+          example: 'http://example-link.dd'
+        imageId:
+          type: string
+          example: 5
+      required:
+        - link
     Events:
       type: array
       items:
@@ -1300,11 +1142,10 @@ components:
       properties:
         en:
           type: string
+          example: Text in English
         ru:
           type: string
-      example:
-        en: Text in English
-        ru: Текст на русском языке
+          example: Текст на русском языке
     Sort:
       type: array
       items:

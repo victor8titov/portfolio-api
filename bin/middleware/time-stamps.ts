@@ -2,11 +2,8 @@ import express, { NextFunction, RequestHandler } from 'express'
 import escape from 'validator/lib/escape'
 import { body, ValidationChain, param } from 'express-validator'
 import createError from 'http-errors'
-import moment from 'moment'
-import { validateLanguage, validateLanguageFromDescription } from './validate-common'
+import { validateEvents, validateLanguage, validateLanguageFromDescription } from './validate-common'
 import { validationErrorHandler } from './handler-error'
-import { repeatCheck } from '../common/check-repeat'
-import { EventAndDate } from '../../app/models/types'
 import { getNamesAndIdTimeStamps } from '../../app/models/time-stamps'
 
 export function validate (method: 'getAll' | 'getById' | 'create' | 'update' | 'deleteById'): (ValidationChain | RequestHandler)[] {
@@ -57,30 +54,16 @@ export function validate (method: 'getAll' | 'getById' | 'create' | 'update' | '
 const validateBody = [
   body('name').notEmpty().trim().escape().isLength({ max: 100 }),
   body('link').optional().trim().isString(),
-  body('events', 'Events is required')
-    .notEmpty()
-    .bail()
-    .custom(value => Array.isArray(value) &&
-      value.every((item: any) =>
-        item.date &&
-        item.status &&
-        typeof item.date === 'string' &&
-        typeof item.status === 'string' &&
-        item.status.length <= 20))
-    .custom(value => value.every((i: EventAndDate) => moment(i.date).isValid()))
-    .withMessage('Not a valid presentation of the date')
+  body('events', 'Event is required').notEmpty(),
+  ...validateEvents,
+  body('events', 'Missing statuses start and end')
     .custom(value => {
       const _statuses = value.map((i: any) => i.status)
 
       if (!_statuses.some((i: string) => i === 'start')) return false
       if (!_statuses.some((i: string) => i === 'end')) return false
       return true
-    })
-    .withMessage('Missing statuses start and end')
-    .custom(value => !repeatCheck(value.map((i: EventAndDate) => i.status)))
-    .withMessage('Uses repeated statuses')
-    .customSanitizer(value =>
-      value.map((i: EventAndDate) => ({ date: moment(i.date).toISOString(), status: i.status }))),
+    }),
   body('description').optional().customSanitizer(value => typeof value === 'string' ? { en: value } : value),
   body('description', 'Field description is not valid').optional().custom(value => {
     if (typeof value !== 'object') return false

@@ -111,7 +111,7 @@ CREATE TABLE projects (
   type VARCHAR(30) NOT NULL DEFAULT '',
   stack VARCHAR(30)[] NOT NULL DEFAULT '{}',
   spend_time VARCHAR(100) NOT NULL DEFAULT '',
-  release_date DATE DEFAULT NULL,
+  --- release_date DATE DEFAULT NULL,
   PRIMARY KEY ( project_id ),
   UNIQUE ( name )
 );
@@ -128,21 +128,6 @@ CREATE TABLE project_images (
     ON DELETE CASCADE,
   FOREIGN KEY ( image_id )
     REFERENCES images ( image_id )
-    ON DELETE CASCADE
-);
-
-DROP TABLE IF EXISTS projects_multilanguge_content CASCADE;
-
-CREATE TABLE projects_multilanguge_content (
-  language VARCHAR(5) NOT NULL,
-  project_id INT NOT NULL,
-  description TEXT NOT NULL DEFAULT '',
-  PRIMARY KEY (project_id, language),
-  FOREIGN KEY (project_id)
-    REFERENCES projects (project_id)
-    ON DELETE CASCADE,
-  FOREIGN KEY ( language )
-    REFERENCES languages ( language )
     ON DELETE CASCADE
 );
 

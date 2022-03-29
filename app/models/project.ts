@@ -1,395 +1,379 @@
 import { Client } from 'pg'
 import format from 'pg-format'
-import { getUrlImage } from '../../bin/common/paths'
-import { ImageView } from './image'
-import { Language, ObjectWithLanguage, Options } from './types'
+import Model from '.'
+import { defaultValue } from '../../bin/config/default-settings'
+import { imageModel, ImageView } from './image'
+import { languageModel } from './language'
+import { EventAndDate, Language, LinkCreation, LinkView, ObjectWithLanguage, Options } from './types'
 
-export type Link = {
-  readonly name: string
-  readonly link: string
-}
-
-export enum ProjectStatuses {
-  RELEASE = 'release'
-}
-
-export type Project = {
+export type ProjectCreation = {
   readonly name: string
   readonly description: ObjectWithLanguage
   readonly type: string
   readonly spendTime: string
-  readonly events: { date: string, status: ProjectStatuses }[]
   readonly stack: string[]
-  readonly links: Link[]
+  readonly events: EventAndDate[]
+  readonly links: LinkCreation[]
   readonly imagesId?: string[]
-  readonly currentLanguage?: Language
-  readonly languages?: Language[]
-  readonly id?: string
-  readonly images?: ImageView[]
 }
 
-export type ProjectRequest = Omit<Project, 'languages' | 'id' | 'images' | 'currentLanguages' >
+export type ProjectView = Omit<ProjectCreation, 'imagesId' | 'description' | 'links'> & {
+  readonly id: string
+  readonly description: string
+  readonly images: ImageView[]
+  readonly languages?: Language[]
+  readonly currentLanguage?: Language
+  readonly links: LinkView[]
+}
 
-export type ProjectResponse = Omit<Project, 'imagesId'>
-
-export type ProjectListWithPagination = {
+export type ProjectList = {
+  currentLanguage: string
+  languages: string[]
   pagination?: {
     page: number
     pageSize: number
     totalPages: number
   }
   sorted?: string[]
-  currentLanguage?: string
-  supportedLanguages?: string[]
-  items?: ProjectResponse[]
+  items: ProjectView[]
 }
 
-export async function getNameProjects (): Promise<{ name: string, id: string }[]> {
-  const db = new Client()
-  try {
-    await db.connect()
-    const _answer = await db.query('SELECT name, project_id as id FROM projects;')
+class ProjectModel extends Model {
+  async getNames (): Promise<{ name: string, id: string }[]> {
+    return this.connect(async (client) => {
+      const { rows } = await client.query('SELECT name, project_id as id FROM projects;')
 
-    return _answer.rows
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
+      return rows
+    })
   }
-}
 
-export async function getCountProjects (): Promise<number> {
-  const db = new Client()
-  try {
-    await db.connect()
-
-    const { rows } = await db.query('SELECT COUNT( * ) FROM projects;')
-    return parseInt(rows.shift().count)
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    db.end()
+  async getCount (): Promise<number> {
+    return this.connect(async (client) => {
+      return await this.queryGetCount(client)
+    })
   }
-}
 
-export async function getProjectById (projectId: string, language: Language): Promise<Omit<ProjectResponse, 'currentLanguage' | 'language'> | undefined> {
-  const db = new Client()
-  try {
-    await db.connect()
+  async getById (projectId: string, currentLanguage: Language): Promise<ProjectView | undefined> {
+    return this.connect(async (client) => {
+      const { rows } = await client.query(`
+      SELECT name, type, stack, spend_time FROM projects 
+        WHERE project_id = $1;
+      `, [projectId])
 
-    const { rows } = await db.query(`
-      SELECT name, type, stack, spend_time, release_date as release FROM projects 
-        WHERE project_id = '${projectId}';
-    `)
+      const project = rows.shift()
+      if (!project) return undefined
 
-    const _project = rows.shift()
-    if (!_project) return undefined
+      const { name, type, stack, spend_time: spendTime } = project
 
-    const _contentDependFromLanguage = await db.query(`
-      SELECT description from projects_multilanguge_content
-        WHERE project_id = '${projectId}' AND language = '${language}';  
-    `)
+      const description = await this.queryGetDescription(client, projectId, currentLanguage)
 
-    /* form content that depend from language */
-    const description = _contentDependFromLanguage.rows.shift()?.description || ''
+      const links = await this.queryGetLinks(client, projectId)
 
-    /* form links */
-    const _linksRows = await db.query(`
-      SELECT name, link FROM links
-        WHERE project_id = '${projectId}';
-    `)
-    const links = _linksRows.rows || []
+      const events = await this.queryGetEvents(client, projectId)
 
-    const images = await getImageByProjectId(db, projectId)
+      const languages = await languageModel.queryGetAll(client)
 
-    const { name, type, stack, spend_time: spendTime, release } = _project
-    return {
-      name,
-      description,
-      type,
-      spendTime,
-      events: release ? [{ date: release, status: ProjectStatuses.RELEASE }] : [],
-      stack,
-      links,
-      images
-    }
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
+      const images = await this.queryGetImagesByProjectId(client, projectId)
+
+      return {
+        id: projectId,
+        languages,
+        currentLanguage,
+        name,
+        description,
+        type,
+        spendTime,
+        events,
+        stack,
+        links,
+        images
+      }
+    })
   }
-}
 
-export async function getProjects (option: Options): Promise<ProjectResponse[]> {
-  const db = new Client()
-  try {
-    const { page, pageSize, language, sort } = option
+  async getList (option: Options): Promise<ProjectList> {
+    return this.connect(async (client) => {
+      const { page = defaultValue.page, pageSize = defaultValue.pageSize, language = Language.EN, sort } = option
 
-    const order: string = sort?.map(item => {
-      const direction = item.slice(0, 1) === '+' ? 'ASC' : 'DESC'
-      return `${item.slice(1)} ${direction}`
-    }).join(', ') || ''
+      const order: string = sort?.map(item => {
+        const direction = item.slice(0, 1) === '-' ? 'DESC' : 'ASC'
+        return `${item.slice(1)} ${direction}`
+      }).join(', ') || 'name'
 
-    await db.connect()
+      const offset = ((page - 1) * pageSize)
 
-    const { rows: _projects } = await db.query(`
-      SELECT project_id as id, name, type, stack, spend_time, release_date as release 
-        FROM projects 
-        ${order ? 'ORDER BY ' + order : 'ORDER BY project_id'}
-        ${pageSize && page ? 'LIMIT ' + pageSize : ''}
-        ${pageSize && page ? 'OFFSET ' + ((page - 1) * pageSize) : ''}
-    `)
-
-    const _result = []
-    for (const _project of _projects) {
-      const { id, name, type, stack, spend_time: spendTime, release } = _project
-
-      const _contentDependFromLanguage = await db.query(`
-      SELECT description from projects_multilanguge_content
-        WHERE project_id = '${id}' AND language = '${language}';  
-      `)
-      /* form content that depend from language */
-      const description = _contentDependFromLanguage.rows.shift()?.description || ''
-
-      /* form links */
-      const _linksRows = await db.query(`
-      SELECT name, link FROM links
-        WHERE project_id = '${id}';
-      `)
-      const links = _linksRows.rows || []
-
-      const events = release ? [{ date: release, status: ProjectStatuses.RELEASE }] : []
-
-      const images = await getImageByProjectId(db, id)
-
-      _result.push({ id, name, description, type, spendTime, events, stack, links, images })
-    }
-
-    return _result
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
-  }
-}
-
-export async function createProject (project: ProjectRequest): Promise<string> {
-  const db = new Client()
-  try {
-    const {
-      name,
-      description,
-      type = '',
-      spendTime = '',
-      events = [],
-      stack,
-      links,
-      imagesId
-    } = project
-    const releaseDate = events.find(i => i.status === ProjectStatuses.RELEASE)?.date || null
-
-    await db.connect()
-
-    await db.query('BEGIN;')
-
-    const { rows } = await db.query(`
-      INSERT INTO projects (name, type, stack, spend_time, release_date)
-        VALUES 
-          ('${name}', '${type}', '{${stack?.join(', ') || ''}}', '${spendTime}', ${releaseDate ? "'" + releaseDate + "'" : null})
-          RETURNING project_id as id;
-    `)
-    const _projectId: string = rows.shift().id
-
-    if (!_projectId) {
-      await db.query('ROLLBACK;')
-      throw new Error('There is Error during processing create project in database')
-    }
-
-    if (description) {
-      const _languages = Object.keys(description)
-
-      const _values = _languages.map((_language) => `('${_projectId}', '${_language}', '${description[_language as Language] || null}')`)
-
-      await db.query(`
-        INSERT INTO projects_multilanguge_content (project_id, language, description)
-          VALUES 
-            ${_values.join(', ')};
-      `)
-    }
-
-    if (links && Array.isArray(links) && links.length) {
-      const _values = links.map(item => `('${item.name}', '${item.link}', '${_projectId}')`)
-      await db.query(`
-        INSERT INTO links (name, link, project_id)
-          VALUES 
-            ${_values.join(', ')};
-      `)
-    }
-
-    if (imagesId && Array.isArray(imagesId) && imagesId.length) {
-      const _values = imagesId.map(i => [_projectId, i])
       const _query = format(`
-        INSERT INTO project_images 
-          (project_id, image_id) 
-          VALUES
-          %L;
-        `, _values)
-      await db.query(_query)
-    }
+        SELECT project_id as id, name, type, stack, spend_time
+        FROM projects 
+        ORDER BY %s
+        LIMIT %L
+        OFFSET %L;
+      `, order, pageSize, offset)
+      const { rows } = await client.query(_query)
 
-    await db.query('COMMIT;')
+      const items: ProjectView[] = []
+      for (const { name, type, stack, spend_time: spendTime, id: projectId } of rows) {
+        const description = await this.queryGetDescription(client, projectId, language)
 
-    return _projectId
-  } catch (e: any) {
-    await db.query('ROLLBACK;')
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
+        const links = await this.queryGetLinks(client, projectId)
+
+        const events = await this.queryGetEvents(client, projectId)
+
+        const images = await this.queryGetImagesByProjectId(client, projectId)
+
+        items.push({
+          id: projectId,
+          name,
+          description,
+          type,
+          spendTime,
+          events,
+          stack,
+          links,
+          images
+        })
+      }
+
+      const languages = await languageModel.queryGetAll(client)
+
+      const count = await this.queryGetCount(client)
+
+      return {
+        currentLanguage: language,
+        languages,
+        pagination: {
+          page,
+          pageSize,
+          totalPages: Math.ceil(count / pageSize)
+        },
+        sorted: sort,
+        items
+      }
+    })
   }
-}
 
-export async function updateProject (project: ProjectRequest, projectId: string): Promise<void> {
-  const db = new Client()
-  try {
-    const {
-      name,
-      description,
-      type = '',
-      spendTime = '',
-      events = [],
-      stack,
-      links,
-      imagesId
-    } = project
-    const releaseDate = events.find(i => i.status === ProjectStatuses.RELEASE)?.date
+  async create (project: ProjectCreation): Promise<string> {
+    return this.connectWitTransaction(async (client) => {
+      const {
+        name,
+        type = '',
+        spendTime = '',
+        stack = [],
+        description,
+        events,
+        links,
+        imagesId
+      } = project
 
-    await db.connect()
-
-    await db.query('BEGIN;')
-
-    await db.query(`
-      UPDATE projects SET
-        name = '${name}',
-        type = '${type}',
-        stack = '{${stack?.join(', ') || ''}}',
-        spend_time = '${spendTime}',
-        release_date = ${releaseDate ? "'" + releaseDate + "'" : null}
-        WHERE project_id = ${projectId};
-    `)
-
-    /* table projects_multilanguge_content */
-    await db.query(`
-      DELETE FROM projects_multilanguge_content 
-        WHERE project_id = '${projectId}';
-    `)
-    if (description) {
-      const _languages = Object.keys(description)
-
-      const _values = _languages.map((_language) => `('${projectId}', '${_language}', '${description[_language as Language] || null}')`)
-
-      await db.query(`
-        INSERT INTO projects_multilanguge_content (project_id, language, description)
+      /* save to projects table */
+      const { rows } = await client.query(`
+        INSERT INTO projects (name, type, stack, spend_time)
           VALUES 
-            ${_values.join(', ')};
-      `)
-    }
+            ($1, $2, $3, $4)
+            RETURNING project_id as id;
+      `, [name, type, stack, spendTime])
+      const projectId: string = rows.shift().id
 
-    // TODO пересмотреть запросы т.е написать одним запросом
-    /* table links */
-    await db.query(`
-      DELETE FROM links 
-        WHERE project_id = '${projectId}';
-    `)
+      if (!projectId) {
+        throw new Error('There is Error during processing create project in database')
+      }
+
+      /* update data in multilingual_content table */
+      await this.queryUpdateDescription(client, projectId, description)
+
+      /* update events table */
+      await this.queryUpdateEvents(client, projectId, events)
+
+      /* update table links */
+      await this.queryUpdateLinks(client, projectId, links)
+
+      /* update table project_images */
+      await this.queryUpdateProjectImages(client, projectId, imagesId)
+
+      return projectId
+    })
+  }
+
+  async update (project: ProjectCreation, projectId: string): Promise<void> {
+    return this.connectWitTransaction(async (client) => {
+      const {
+        name,
+        description,
+        type = '',
+        spendTime = '',
+        events,
+        stack = [],
+        links,
+        imagesId
+      } = project
+
+      await client.query(`
+        UPDATE projects SET
+          name = $1,
+          type = $2,
+          stack = $3,
+          spend_time = $4
+          WHERE project_id = $5;
+      `, [name, type, stack, spendTime, projectId])
+
+      /* update data in multilingual_content table */
+      await this.queryUpdateDescription(client, projectId, description)
+
+      /* update events table */
+      await this.queryUpdateEvents(client, projectId, events)
+
+      /* update table links */
+      await this.queryUpdateLinks(client, projectId, links)
+
+      /* update table project_images */
+      await this.queryUpdateProjectImages(client, projectId, imagesId)
+    })
+  }
+
+  async deleteById (projectId: string): Promise<void> {
+    return this.connect(async (client) => {
+      await client.query(`
+        DELETE FROM projects WHERE project_id = $1;
+      `, [projectId])
+    })
+  }
+
+  async queryGetCount (client: Client): Promise<number> {
+    const { rows } = await client.query('SELECT COUNT( * ) FROM projects;')
+
+    return parseInt(rows.shift().count)
+  }
+
+  async queryUpdateDescription (client: Client, projectId: string, description: ObjectWithLanguage | null | undefined): Promise<void> {
+    await client.query(`
+        DELETE FROM multilingual_content 
+          WHERE project_id = $1;
+      `, [projectId])
+
+    if (description && Object.keys(description).length) {
+      const languages = Object.keys(description)
+
+      const _values =
+        languages.map((_language) => [
+          _language,
+          description[_language as Language] || '',
+          projectId
+        ])
+
+      const _query = format(`
+        INSERT INTO multilingual_content 
+          (language, content, project_id)
+          VALUES %L;
+        `, _values)
+      await client.query(_query)
+    }
+  }
+
+  async queryGetDescription (client: Client, projectId: string, language: Language): Promise<string> {
+    const { rows } = await client.query(`
+    SELECT content as description from multilingual_content
+      WHERE project_id = $1 AND language = $2;  
+    `, [projectId, language])
+
+    return rows.shift()?.description || ''
+  }
+
+  async queryUpdateEvents (client: Client, projectId: string, events: EventAndDate[] | null | undefined): Promise<void> {
+    await client.query(`
+      DELETE FROM events
+        WHERE project_id = $1;  
+    `, [projectId])
+
+    if (events && Array.isArray(events) && events.length) {
+      const _values = events.map(item => [item.date, item.status, projectId])
+      const _query = format(`
+        INSERT INTO events 
+        (date, status, project_id)
+        VALUES %L;
+      `, _values)
+      await client.query(_query)
+    }
+  }
+
+  async queryGetEvents (client: Client, projectId: string): Promise<EventAndDate[]> {
+    const { rows } = await client.query<EventAndDate>(`
+      SELECT date, status FROM events 
+        WHERE project_id = $1;  
+    `, [projectId])
+
+    return rows
+  }
+
+  async queryUpdateLinks (client: Client, projectId: string, links: LinkCreation[] | null | undefined): Promise<void> {
+    await client.query(`
+        DELETE FROM links 
+          WHERE project_id = $1;
+      `, [projectId])
+
     if (links && Array.isArray(links) && links.length) {
-      const _values = links.map(item => `('${item.name}', '${item.link}', '${projectId}')`)
-      await db.query(`
-        INSERT INTO links (name, link, project_id)
-          VALUES 
-            ${_values.join(', ')};
-      `)
+      const _values = links.map(item => [item.name, item.link, item.imageId, projectId])
+      const _query = format(`
+        INSERT INTO links (name, link, image_id, project_id)
+          VALUES %L;
+      `, _values)
+      await client.query(_query)
     }
+  }
 
-    // TODO попробовать написать одним запросом
-    await db.query(`
-      DELETE FROM project_images
+  async queryGetLinks (client: Client, projectId: string): Promise<LinkView[]> {
+    const listLink: LinkView[] = []
+
+    const { rows } = await client.query<{ name: string, link: string, image: string}>(`
+      SELECT name, link, image_id as image FROM links
         WHERE project_id = $1;
     `, [projectId])
 
+    for (const { name, link, image: imageId } of rows) {
+      if (imageId) {
+        const icon = await imageModel.queryGetById(client, imageId)
+        listLink.push({ name, link, icon })
+      } else {
+        listLink.push({ name, link })
+      }
+    }
+
+    return listLink || []
+  }
+
+  async queryUpdateProjectImages (client: Client, projectId: string, imagesId: string[] | null | undefined): Promise<void> {
+    await client.query(`
+        DELETE FROM project_images
+          WHERE project_id = $1;
+      `, [projectId])
+
     if (imagesId && Array.isArray(imagesId) && imagesId.length) {
-      const _values = imagesId.map(i => [projectId, i])
+      const _values = imagesId.map(_imageId => [projectId, _imageId])
       const _query = format(`
         INSERT INTO project_images 
           (project_id, image_id) 
           VALUES
           %L;
         `, _values)
-      await db.query(_query)
+      await client.query(_query)
     }
-
-    await db.query('COMMIT;')
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
   }
-}
 
-export async function deleteProject (projectId: string): Promise<void> {
-  const db = new Client()
-  try {
-    await db.connect()
+  async queryGetImagesByProjectId (client: Client, projectId: string): Promise<ImageView[]> {
+    const images: ImageView[] = []
 
-    await db.query(`
-      DELETE FROM projects
-        WHERE project_id = '${projectId}';
-    `)
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
-  }
-}
-
-async function getImageByProjectId (db: Client, projectId: string): Promise<ImageView[]> {
-  const images: ImageView[] = []
-
-  const { rows } = await db.query<{ id: string }>(`
+    const { rows } = await client.query<{ id: string }>(`
         SELECT image_id as id FROM project_images
           WHERE project_id = $1;
         `, [projectId])
 
-  for (const { id: imageId } of rows) {
-    const { rows: imagesList } = await db.query<{ id: string, description: string }>(`
-        SELECT image_id as id, description FROM images
-          WHERE image_id = $1;
-        `, [imageId])
-    const image = imagesList.shift()
+    for (const { id: imageId } of rows) {
+      const _image = await imageModel.queryGetById(client, imageId)
 
-    if (!image) {
-      throw new Error('Error during getting image entity')
+      images.push(_image)
     }
 
-    const { rows: divisionByTemplates } =
-        await db.query<{ name: string, template: string, width: string | null, height: string | null}>(`
-          SELECT name, template_name as template, width, height 
-            FROM images_division_by_template
-            WHERE image_id = $1
-            ORDER BY name;
-          `, [image.id])
-
-    images.push({
-      id: imageId,
-      description: image.description,
-      divisionByTemplates: divisionByTemplates.map(i => ({ ...i, url: getUrlImage(i.name) }))
-    })
+    return images || []
   }
-
-  return images
 }
+
+export const projectModel = new ProjectModel()

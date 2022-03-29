@@ -36,25 +36,22 @@ paths:
           content: 
             application/json:
               schema:
-                type: object
-                properties:
-                  pagination:
-                    $ref: 'api-doc.yaml#/components/schemas/PaginationInResponse'
-                  sorted: 
-                    $ref: 'api-doc.yaml#/components/schemas/Sort'
-                  items:
-                    type: array
-                    items:
-                      allOf:
-                      - type: object
-                        required:
-                          - id
-                        properties:
-                          id:
-                            type: string
-                        example:
-                          id: 10
-                      - $ref: '#/components/schemas/ProjectResponse'
+                allOf:
+                  - $ref: '#/components/schemas/ProjectLanguageFields'
+                  - type: object
+                    properties:
+                      sorted:
+                        $ref: 'api-doc.yaml#/components/schemas/Sort'
+                  - type: object
+                    properties:
+                      pagination:
+                        $ref: 'api-doc.yaml#/components/schemas/PaginationInResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProjectView'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
@@ -70,24 +67,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProjectRequest'
+              $ref: '#/components/schemas/ProjectCreation'
       responses:
         200:
-          description: Entity project has been successfully created
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - id
-                properties:
-                  id:
-                    type: string
-                  message:
-                    type: string
-                example:
-                  id: 11
-                  message: Entity project has been successfully created
+          $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
@@ -115,15 +98,8 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - type: object
-                    required:
-                      - id
-                    properties:
-                      id:
-                        type: string
-                    example:
-                      id: 10
-                  - $ref: '#/components/schemas/ProjectResponse'
+                  - $ref: '#/components/schemas/ProjectLanguageFields'
+                  - $ref: '#/components/schemas/ProjectView'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
@@ -146,24 +122,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProjectRequest'
+              $ref: '#/components/schemas/ProjectCreation'
       responses:
         200:
-          description: Project change has passed successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - id
-                properties:
-                  id:
-                    type: string
-                  message: 
-                    type: string
-                example: 
-                  id: 11
-                  message: Project change has passed successfully
+          $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
@@ -183,21 +145,7 @@ paths:
           description: Id for find project for delete
       responses:
         200:
-          description: Successful deleted the project
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - id
-                properties:
-                  id:
-                    type: string
-                  message:
-                    type: string
-                example:
-                  id: 10
-                  message: Successful deleted the project
+          $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
@@ -205,150 +153,71 @@ paths:
 
 components:
   schemas:
-    ProjectRequest:
-      type: object
-      properties:
-        name:
-          type: string
-        description:
-          type: object
-          properties:
-            ru:
-              type: string
-            en:
-              type: string
-        type:
-          type: string
-        stack: 
-          type: array
-          items:
-            type: string
-        spendTime: 
-          type: string
-        events:
-          $ref: 'api-doc.yaml#/components/schemas/Events'
-        imagesId:
-          type: array
-          items:
-            type: string
-        links: 
-          type: array
-          items: 
-            type: object
-            properties:
-              name: 
-                type: string
-              link:
-                type: string
-      required:
-        - name
-      example: 
-        name: Organic
-        description: {
-          en: 'description in English',
-          ru: 'description in Russian',
-        }
-        type: template
-        stack: ['html', 'css']
-        spendTime: '2 days'
-        events: [
-          {
-            date: '2222-11-11',
-            status: 'release',
-          }
-        ]
-        links: [
-          {
-            name: 'github',
-            link: 'http://github.com/pupkin/project',
-          },
-          {
-            name: 'live project',
-            link: 'http://somedomain.com',
-          }
-        ]
-        imagesId: [ 
-            rlxkglndl,
-            xldkhsoox,
-        ]       
-    ProjectResponse:
+    ProjectLanguageFields: 
       type: object
       properties:
         languages: 
           $ref: 'api-doc.yaml#/components/schemas/Languages'
         currentLanguage: 
           $ref: 'api-doc.yaml#/components/schemas/Language'
+
+    ProjectCommon:
+      type: object
+      properties:
         name:
           type: string
-        description:
-          type: string
+          example: name project
         type:
           type: string
+          example: type
         stack: 
           type: array
           items:
             type: string
+          example: ['html', 'css']
         spendTime: 
           type: string
+          example: string may be like 2 days
         events:
           $ref: 'api-doc.yaml#/components/schemas/Events'
-        images:
-          type: array
-          items:
-            type: object
-            properties:
-              templateName: 
+      required:
+        - name
+
+    ProjectCreation:
+      allOf:
+        - $ref: '#/components/schemas/ProjectCommon'
+        - type: object
+          properties:
+            description:
+              $ref: 'api-doc.yaml#/components/schemas/StringWithDivisionIntoLanguages'
+            imagesId:
+              type: array
+              items:
                 type: string
-              width: 
-                type: number
-              height:
-                type: number
-              url: 
-                type: string
-              description:
-                type: string
-            required:
-              - url
-        links: 
-          type: array
-          items: 
-            type: object
-            properties:
-              name: 
-                type: string
-              link:
-                type: string
-      example: 
-        language: ['en', 'ru']
-        currentLanguage: 'ru'
-        name: Organic
-        description: 'description in Russian'
-        type: template
-        stack: ['html', 'css']
-        spendTime: 'time'
-        events: [
-          {
-            date: '2222-11-11',
-            status: 'release',
-          }
-        ]
-        links: [
-          {
-            name: 'github',
-            link: 'http://github.com/pupkin/project',
-          },
-          {
-            name: 'live project',
-            link: 'http://somedomain.com',
-          }
-        ]
-        images: [
-          { 
-            templateName: 'original', 
-            width: 500, 
-            height: 500, 
-            url: 'public/images/pic-500x500-mid.png', 
-            description: 'Photo is my when I was young',
-          }
-        ]
-    
+                example: 1
+            links: 
+              type: array
+              items: 
+                $ref: 'api-doc.yaml#/components/schemas/LinkCreation'
+          
+  
+    ProjectView:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              example: 5
+            description:
+              type: string
+              example: description in Russian
+            images:
+              type: array
+              items:
+                $ref: 'image.yaml#/components/schemas/Image'
+            links: 
+              type: array
+              items: 
+                $ref: 'api-doc.yaml#/components/schemas/LinkView'
+        - $ref: '#/components/schemas/ProjectCommon'
+        

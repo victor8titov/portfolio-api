@@ -2,11 +2,11 @@ import express, { NextFunction, RequestHandler } from 'express'
 import escape from 'validator/lib/escape'
 import { body, ValidationChain, query, param } from 'express-validator'
 import createError from 'http-errors'
-import { getNameProjects, ProjectStatuses } from '../../app/models/project'
-import { validateLanguage, validateLanguageFromDescription, validatePagination } from './validate-common'
+import { projectModel } from '../../app/models/project'
+import { checkImageIdsInDB, validateEvents, validateLanguage, validateLanguageFromDescription, validatePagination } from './validate-common'
 import { repeatCheck } from '../common/check-repeat'
 import { validationErrorHandler } from './handler-error'
-import { imageModel } from '../../app/models/image'
+import { LinkCreation } from '../../app/models/types'
 
 export function validate (method: 'create' | 'getById' | 'getProjects' | 'put' | 'delete'): (ValidationChain | RequestHandler)[] {
   switch (method) {
@@ -16,7 +16,8 @@ export function validate (method: 'create' | 'getById' | 'getProjects' | 'put' |
         validationErrorHandler,
         validateLanguageFromDescription,
         validateName,
-        validateImagesId
+        validateImagesId,
+        validateLinksImagesId
       ]
     }
     case 'getById': {
@@ -43,7 +44,8 @@ export function validate (method: 'create' | 'getById' | 'getProjects' | 'put' |
         validationErrorHandler,
         validateLanguageFromDescription,
         validateName,
-        validateImagesId
+        validateImagesId,
+        validateLinksImagesId
       ]
     }
     case 'delete': {
@@ -60,9 +62,10 @@ export function validate (method: 'create' | 'getById' | 'getProjects' | 'put' |
 }
 
 const validateBody = [
-  body('name').trim().escape().isLength({ max: 100 }),
+  body('name').trim().escape().notEmpty().isLength({ max: 100 }),
   body('type').optional().trim().isLength({ max: 30 }),
   body('spendTime').optional().trim().isLength({ max: 100 }),
+  body('description').optional().customSanitizer(value => typeof value === 'string' ? { en: value } : value),
   body('description', 'Field description is not valid').optional().custom(value => {
     if (typeof value !== 'object') return false
     for (const key in value) {
@@ -70,13 +73,7 @@ const validateBody = [
     }
     return value
   }),
-  body('events').optional().custom(value => Array.isArray(value) &&
-  value.every((item: any) =>
-    item.date &&
-    item.status &&
-    typeof item.date === 'string' &&
-    typeof item.status === 'string' &&
-    Object.values(ProjectStatuses).some(i => i === item.status))),
+  ...validateEvents,
   body('links').optional().custom(value => Array.isArray(value) &&
     value.every((item: any) =>
       item.name &&
@@ -118,11 +115,12 @@ const validateSort = [
 
 async function validateName (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const projectId: string | number = req.params.projectId ?? -1
-    const _namesOfExistProjects = await getNameProjects()
+    const projectId: string | number | undefined = req.params.projectId
 
-    const _checkName = _namesOfExistProjects.some(
-      item => item.name === req.body.name && parseInt(item.id) !== parseInt(projectId))
+    const namesFromDB = await projectModel.getNames()
+
+    const _checkName = namesFromDB.some(
+      item => item.name === req.body.name && item.id.toString() !== projectId?.toString())
 
     if (_checkName) {
       return next(createError(400, 'Project with such name is exist.', { source: 'name' }))
@@ -137,7 +135,7 @@ async function validateName (req: express.Request, res: express.Response, next: 
 async function isExistById (req: express.Request, res: express.Response, next: NextFunction) {
   try {
     const projectId = parseInt(req.params.projectId)
-    const _projectsFromDatabase = await getNameProjects()
+    const _projectsFromDatabase = await projectModel.getNames()
 
     const _checking = _projectsFromDatabase.some(item => parseInt(item.id) === projectId)
 
@@ -156,12 +154,24 @@ async function validateImagesId (req: express.Request, res: express.Response, ne
     const imagesId = req.body.imagesId
     if (!imagesId) return next()
 
-    const _imagesIdFromDatabase = await imageModel.getListId()
-
-    const _checkImagesId = imagesId.every(
-      (_img: string) => _imagesIdFromDatabase.some(_imgFromDB => parseInt(_imgFromDB) === parseInt(_img)))
-    if (!_checkImagesId) {
+    if (!checkImageIdsInDB(imagesId)) {
       return next(createError(400, 'Some from list images id is wrong', { source: 'imagesId' }))
+    }
+
+    next()
+  } catch (e) {
+    next(createError(500, 'Error is during validate images ID'))
+  }
+}
+
+async function validateLinksImagesId (req: express.Request, res: express.Response, next: NextFunction) {
+  try {
+    const imagesId = req.body.links?.map((i: LinkCreation) => i.imageId).filter((i: string | undefined) => i)
+    if (!imagesId) return next()
+
+    const checking = await checkImageIdsInDB(imagesId)
+    if (!checking) {
+      return next(createError(400, 'Some image Id from list links is wrong', { source: 'imagesId' }))
     }
 
     next()

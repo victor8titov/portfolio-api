@@ -1,9 +1,12 @@
 import express, { NextFunction } from 'express'
 import createError from 'http-errors'
-import { query } from 'express-validator'
+import moment from 'moment'
+import { body, query } from 'express-validator'
 import { imageModel } from '../../app/models/image'
-import { Language } from '../../app/models/types'
-import { getLanguages } from '../../app/models/language'
+import { EventAndDate, Language } from '../../app/models/types'
+import { languageModel } from '../../app/models/language'
+import { repeatCheck } from '../common/check-repeat'
+import { defaultValue } from '../config/default-settings'
 
 export const validateLanguage = [
   query('language', 'Query language is wrong, it can be string and length 5')
@@ -15,8 +18,27 @@ export const validateLanguage = [
 ]
 
 export const validatePagination = [
-  query('page').optional(),
-  query('pageSize').optional()
+  query('page').optional().default(defaultValue.page),
+  query('pageSize').optional().default(defaultValue.pageSize)
+]
+
+export const validateEvents = [
+  body('events')
+    .optional()
+    .default([])
+    .custom(value => Array.isArray(value) &&
+      value.every((item: any) =>
+        item.date &&
+        item.status &&
+        typeof item.date === 'string' &&
+        typeof item.status === 'string' &&
+        item.status.length <= 20))
+    .custom(value => value.every((i: EventAndDate) => moment(i.date).isValid()))
+    .withMessage('Not a valid presentation of the date')
+    .custom(value => !repeatCheck(value.map((i: EventAndDate) => i.status)))
+    .withMessage('Uses repeated statuses')
+    .customSanitizer(value =>
+      value?.map((i: EventAndDate) => ({ date: moment(i.date).toISOString(), status: i.status })))
 ]
 
 export async function checkImageIdsInDB (listId: (string | number)[]): Promise<boolean> {
@@ -39,7 +61,7 @@ export async function validateLanguageFromDescription (req: express.Request, res
     const _useLanguages: string[] | undefined = req.body.description ? Object.keys(req.body.description) : undefined
 
     if (_useLanguages) {
-      const _supportedLanguages = await getLanguages()
+      const _supportedLanguages = await languageModel.getAll()
 
       const _checkingLanguages =
         _useLanguages.every(_lang => _supportedLanguages.some(

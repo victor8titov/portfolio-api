@@ -56,6 +56,35 @@ components:
         bearerFormat: JWT
 
   schemas:
+    LinkView:
+      type: object
+      properties:
+        name: 
+          type: string
+          example: Github
+        link:
+          type: string
+          example: http://example-link.dd
+        icon:
+          $ref: 'image.yaml#/components/schemas/Image'
+      required:
+        - link
+
+    LinkCreation:
+      type: object
+      properties:
+        name: 
+          type: string
+          example: Github
+        link:
+          type: string
+          example: http://example-link.dd
+        imageId:
+          type: string
+          example: 5
+      required:
+        - link 
+  
     Events:
       type: array
       items: 

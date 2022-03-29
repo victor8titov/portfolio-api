@@ -78,19 +78,7 @@ paths:
               $ref: '#/components/schemas/HomePageCreation'
       responses:
         200:
-          description: OK. Data Update 
-          content: 
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  message:
-                    type: string
-                example:
-                  id: 3
-                  message: Data for home page successful updated
+          $ref: 'api-doc.yaml#/components/responses/200AfterSuccessfulChangesEntity'
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         401:
