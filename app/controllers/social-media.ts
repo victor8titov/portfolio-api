@@ -1,12 +1,12 @@
 import express, { NextFunction } from 'express'
 import createError from 'http-errors'
-import * as model from '../models/social-media'
+import { SocialMediaList, socialMediaModel } from '../models/social-media'
 
 export async function getAll (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const links = await model.getAll()
+    const links = await socialMediaModel.getAll()
 
-    res.status(200).json(links as model.SocialMediaList)
+    res.status(200).json(links as SocialMediaList)
   } catch (e) {
     next(createError(500, 'Error during getting all links'))
   }
@@ -16,7 +16,7 @@ export async function create (req: express.Request, res: express.Response, next:
   try {
     const { name, link, imageId } = req.body
 
-    const id = await model.create({ name, link, imageId })
+    const id = await socialMediaModel.create({ name, link, imageId })
 
     res.status(200).json({ id, message: 'Social media link is created successfully' })
   } catch (e) {
@@ -28,7 +28,7 @@ export async function update (req: express.Request, res: express.Response, next:
   try {
     const { name, link, imageId } = req.body
     const id = req.params.socialMediaId
-    await model.update(id, { name, link, imageId })
+    await socialMediaModel.update(id, { name, link, imageId })
 
     res.status(200).json({ id, message: 'Social media link is updated successfully' })
   } catch (e) {
@@ -39,7 +39,7 @@ export async function update (req: express.Request, res: express.Response, next:
 export async function deleteById (req: express.Request, res: express.Response, next: NextFunction) {
   try {
     const id = req.params.socialMediaId
-    await model.deleteById(id)
+    await socialMediaModel.deleteById(id)
 
     res.status(200).json({ id, message: 'Social media link is deleted successfully' })
   } catch (e) {

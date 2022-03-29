@@ -2,7 +2,7 @@ import express, { NextFunction, RequestHandler } from 'express'
 import { body, ValidationChain, param } from 'express-validator'
 import createError from 'http-errors'
 import { imageModel } from '../../app/models/image'
-import { getListIdSocialMedia } from '../../app/models/social-media'
+import { socialMediaModel } from '../../app/models/social-media'
 import { validationErrorHandler } from './handler-error'
 
 export function validate (method: 'create' | 'update' | 'delete'): (ValidationChain | RequestHandler)[] {
@@ -54,7 +54,7 @@ const validateId = [
 async function isExistById (req: express.Request, res: express.Response, next: NextFunction) {
   try {
     const socialMediaId = parseInt(req.params.socialMediaId)
-    const _mediaSocialListIdFromDB = await getListIdSocialMedia()
+    const _mediaSocialListIdFromDB = await socialMediaModel.getListId()
 
     const isExist = _mediaSocialListIdFromDB.some(item => parseInt(item) === socialMediaId)
 

@@ -1,4 +1,4 @@
-import { Client } from 'pg'
+import Model from '.'
 import { imageModel, ImageView } from './image'
 
 export type SocialMediaView = {
@@ -15,127 +15,87 @@ export type SocialMediaList = {
   items: SocialMediaView[]
 }
 
-export async function getListIdSocialMedia (): Promise<string[]> {
-  const db = new Client()
-  try {
-    await db.connect()
-
-    const { rows } = await db.query<{ id: string }>(`
+class SocialMediaModel extends Model {
+  async getListId (): Promise<string[]> {
+    return this.connect(async (client) => {
+      const { rows } = await client.query<{ id: string }>(`
       SELECT link_id as id FROM links
         WHERE social_media = TRUE;
-    `)
+      `)
 
-    return rows.map(i => i.id)
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
+      return rows.map(i => i.id)
+    })
   }
-}
 
-export async function getAll (): Promise<SocialMediaList> {
-  const db = new Client()
-  try {
-    await db.connect()
+  async getAll (): Promise<SocialMediaList> {
+    return this.connect(async (client) => {
+      const items: SocialMediaView[] = []
 
-    const items: SocialMediaView[] = []
-
-    const { rows } =
-      await db.query<{ id: string, name: string, link: string, image: string}>(`
+      const { rows } =
+      await client.query<{ id: string, name: string, link: string, image: string}>(`
       SELECT link_id as id, name, link, image_id as image 
         FROM links
         WHERE social_media = true
         ORDER BY name;
-    `)
+      `)
 
-    for (const { image: imageId, ...rest } of rows) {
-      let icon
-      if (imageId) {
-        icon = await imageModel.queryGetById(db, imageId)
+      for (const { image: imageId, ...rest } of rows) {
+        let icon
+        if (imageId) {
+          icon = await imageModel.queryGetById(client, imageId)
+        }
+        items.push({
+          ...rest,
+          ...(icon ? { icon } : {})
+        })
       }
-      items.push({
-        ...rest,
-        ...(icon ? { icon } : {})
-      })
-    }
 
-    return { items }
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
+      return { items }
+    })
   }
-}
 
-export async function create (socialMedia: SocialMediaCreation): Promise<number> {
-  const db = new Client()
-  try {
-    const { name, link, imageId } = socialMedia
+  async create (socialMedia: SocialMediaCreation): Promise<number> {
+    return this.connectWitTransaction(async (client) => {
+      const { name, link, imageId } = socialMedia
 
-    await db.connect()
-    await db.query('BEGIN;')
-
-    const { rows } = await db.query(`
+      const { rows } = await client.query(`
       INSERT INTO links 
-      (name, link, social_media, image_id)
-      VALUES
-      ($1, $2, true, $3)
-      RETURNING link_id as id;
-    `, [name, link, imageId])
+        (name, link, social_media, image_id)
+        VALUES
+        ($1, $2, true, $3)
+        RETURNING link_id as id;
+      `, [name, link, imageId])
 
-    const linkId = rows.shift().id
+      const linkId = rows.shift().id
 
-    if (!linkId) {
-      await db.query('ROLLBACK;')
-      throw new Error('Error during creating link entity')
-    }
+      if (!linkId) {
+        throw new Error('Error during creating link entity')
+      }
 
-    await db.query('COMMIT;')
-    return linkId
-  } catch (e: any) {
-    await db.query('ROLLBACK;')
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
+      return linkId
+    })
   }
-}
 
-export async function update (socialMediaId: string, socialMedia: SocialMediaCreation): Promise<void> {
-  const db = new Client()
-  try {
-    const { name, link, imageId } = socialMedia
+  async update (socialMediaId: string, socialMedia: SocialMediaCreation): Promise<void> {
+    return this.connect(async (client) => {
+      const { name, link, imageId } = socialMedia
 
-    await db.connect()
-
-    await db.query(`
+      await client.query(`
       UPDATE links SET
         name = $1,
         link = $2,
         social_media = true,
         image_id = $3
         WHERE link_id = $4;
-    `, [name, link, imageId, socialMediaId])
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
+      `, [name, link, imageId, socialMediaId])
+    })
+  }
+
+  async deleteById (socialMediaId: string): Promise<void> {
+    return this.connect(async (client) => {
+      await client.query('DELETE FROM links WHERE link_id = $1', [socialMediaId])
+    })
   }
 }
 
-export async function deleteById (socialMediaId: string): Promise<void> {
-  const db = new Client()
-  try {
-    await db.connect()
-
-    await db.query('DELETE FROM links WHERE link_id = $1', [socialMediaId])
-  } catch (e: any) {
-    console.error(e)
-    throw e
-  } finally {
-    await db.end()
-  }
-}
+export const socialMediaModel = new SocialMediaModel()
