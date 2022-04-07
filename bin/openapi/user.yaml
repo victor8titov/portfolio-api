@@ -1,0 +1,44 @@
+openapi: 3.0.0
+info:
+  title: User
+  version: 0.0.1
+tags:
+  - name: user
+    description: Endpoint is for data about user
+paths:
+  /user:
+    get:
+      tags:
+        - user
+      summary: Getting data user
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        401:
+          $ref: 'api-doc.yaml#/components/responses/UnauthorizedError'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id: 
+          type: string
+          example: 1
+        name:  
+          type: string
+          example: Vasa
+        email:
+          type: string 
+          example: vasa@mail.com
+   

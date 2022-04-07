@@ -7,23 +7,25 @@ tags:
     description: Endpoint is for authorization Users
 paths:
   /auth/login:
-    get:
+    post:
       tags:
         - auth
       summary: Logs user into the system
-      parameters:
-        - name: username
-          in: query
-          description: The user name for login
-          required: true
-          schema:
-              type: string
-        - name: password
-          in: query
-          description: The password for login in clear text
-          required: true
-          schema:
-            type: string
+      requestBody:
+        description: Data for login
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: 
+                  type: string
+                  example: username
+                password:
+                  type: string
+                  required:
+                    - username
+                    - password
       responses:
         200:
           description: successful operation
@@ -36,7 +38,7 @@ paths:
         500:
           $ref: 'api-doc.yaml#/components/responses/5XX'
   /auth/logout:
-    get:
+    delete:
       tags:
       - auth
       summary: Logs out current logged in user session
@@ -94,6 +96,8 @@ paths:
                   $ref: "#/components/schemas/JwtToken"
         400:
           $ref: 'api-doc.yaml#/components/responses/4XX'
+        422:
+          $ref: 'api-doc.yaml#/components/responses/422'
         500:
           $ref: 'api-doc.yaml#/components/responses/5XX'
 

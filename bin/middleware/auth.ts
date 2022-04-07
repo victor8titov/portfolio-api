@@ -29,12 +29,12 @@ export function validate (method: 'login' | 'logout' | 'refreshToken'): (Validat
   switch (method) {
     case 'login': {
       return [
-        query('username', 'Username and Password are required field').notEmpty(),
-        query('password', 'Username and Password are required field').notEmpty(),
-        query('username', 'Not correct field length').trim().isLength({ max: 20, min: 5 }),
-        query('password', 'Not correct field length').trim().isLength({ max: 20, min: 5 }),
-        query('username', 'Username and Password have to be string').isString().escape(),
-        query('password', 'Username and Password have to be string').isString().escape(),
+        body('username', 'Username and Password are required field').notEmpty(),
+        body('password', 'Username and Password are required field').notEmpty(),
+        body('username', 'Not correct field length').trim().isLength({ max: 20, min: 5 }),
+        body('password', 'Not correct field length').trim().isLength({ max: 20, min: 5 }),
+        body('username', 'Username and Password have to be string').isString().escape(),
+        body('password', 'Username and Password have to be string').isString().escape(),
         validationErrorHandler
 
       ]
@@ -84,7 +84,7 @@ function validateToken (req: express.Request, res: express.Response, next: NextF
   const { refreshToken } = req.body
 
   jwt.verify(refreshToken, secret, function (err: any, decoded: any) {
-    if (err) return next(createError(400, err.message))
+    if (err) return next(createError(422, err.message))
 
     if (decoded) next()
     else next(createError(400))

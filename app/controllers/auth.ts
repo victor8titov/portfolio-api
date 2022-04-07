@@ -6,8 +6,8 @@ import { getUserById, getUserByName } from '../models/user'
 export async function login (req: Request, res: Response, next: NextFunction) {
   try {
     const message = 'One of the username or password fields is incorrect.'
-    const username: string = req.query.username as string
-    const password: string = req.query.password as string
+    const username: string = req.body.username as string
+    const password: string = req.body.password as string
 
     const _user = await getUserByName(username)
     if (!_user) {
@@ -47,12 +47,12 @@ export async function refreshToken (req: Request, res: Response, next: NextFunct
 
     const _payload = await getPayloadToken(refreshToken)
     if (!_payload) {
-      return next(createError(400, 'Refresh token not valid'))
+      return next(createError(422, 'Refresh token not valid'))
     }
 
     const _refreshTokenFromDataBase = await getRefreshToken(_payload.tokenId)
     if (!_refreshTokenFromDataBase) {
-      return next(createError(400, 'Refresh token not valid'))
+      return next(createError(422, 'Refresh token not valid'))
     }
 
     const _user = await getUserById(_refreshTokenFromDataBase.userId)

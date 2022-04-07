@@ -8,6 +8,7 @@ import * as skillsControllers from '../controllers/skills'
 import * as timeStampControllers from '../controllers/time-stamps'
 import * as callbackControllers from '../controllers/callback'
 import * as socialMediaControllers from '../controllers/social-media'
+import * as userControllers from '../controllers/user'
 import { validate as validateProjects } from '../../bin/middleware/projects'
 import { validate as validateHomepage } from '../../bin/middleware/homepage'
 import { auth, validate as validateAuth } from '../../bin/middleware/auth'
@@ -22,9 +23,12 @@ import { validateCallback } from '../../bin/middleware/callback'
 
 const router = express.Router()
 
+/* goal User */
+router.get('/user', auth, userControllers.getUser)
+
 /* goal Authentication */
-router.get('/auth/login', validateAuth('login'), authController.login)
-router.get('/auth/logout', validateAuth('logout'), authController.logout)
+router.post('/auth/login', validateAuth('login'), authController.login)
+router.delete('/auth/logout', validateAuth('logout'), authController.logout)
 router.post('/auth/refresh-token', validateAuth('refreshToken'), authController.refreshToken)
 
 /* goal Homepage */

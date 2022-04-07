@@ -11,11 +11,17 @@ import passport from 'passport'
 import './bin/config/passport-jwt-strategy'
 import { routersForStatic } from './app/routes/static'
 import { errorHandler } from './bin/middleware/handler-error'
+import cors from 'cors'
 
 const swaggerDocument = YAML.load(path.resolve(__dirname, './bin/openapi/bundle-doc.yaml'))
 
 const app = express()
 
+const corsOptions = {
+  origin: process.env.ORIGIN
+}
+
+app.use(cors(corsOptions))
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))

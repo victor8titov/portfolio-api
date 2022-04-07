@@ -11,10 +11,12 @@ info:
   version: 0.0.1
 
 servers:
-- url: http://localhost:3000/api
+- url: http://localhost:8000/api
   description: dev server
 
 paths:
+  /user:
+    $ref: 'user.yaml#/paths/~1user'
   /auth/login:
     $ref: 'auth.yaml#/paths/~1auth~1login'
   /auth/logout:
@@ -225,7 +227,23 @@ components:
                 readOnly: true
             example:
               message: Forbidden
-    
+    422:
+      description: |
+        Unprocessable Entity
+        Answer 422 (Unprocessable Entity) means that the server understands the specified data type, and the query syntax is correct.But the token itself will not be valid
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                readOnly: true
+            example:
+              message: Token isn't valid
+      
     5XX:
       description: Internal Server Error
       content: 
