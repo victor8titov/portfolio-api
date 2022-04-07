@@ -24,6 +24,14 @@ export type HomePageView = {
   readonly avatars: AvatarView[] | null
 }
 
+export type HomePageMultilingual = {
+  readonly languages: Language[]
+  readonly title?: ObjectWithLanguage
+  readonly subtitle?: ObjectWithLanguage
+  readonly description?: ObjectWithLanguage
+  readonly avatars: AvatarView[] | null
+}
+
 export type HomePageCreation = {
   readonly title?: ObjectWithLanguage
   readonly subtitle?: ObjectWithLanguage
@@ -54,6 +62,37 @@ class HomePageModel extends Model {
         currentLanguage,
         languages,
         ..._line,
+        avatars
+      }
+    })
+  }
+
+  async getWitAllLanguages (): Promise<HomePageMultilingual | undefined> {
+    return this.connect(async (client) => {
+      const languages = await languageModel.queryGetAll(client)
+
+      const { rows } = await client.query<{title: string, subtitle: string, description: string, language: Language}>(`
+      SELECT title, subtitle, description, language
+        FROM homepage;
+      `)
+
+      if (!rows.length) return undefined
+
+      const _homePage: any = { title: {}, subtitle: {}, description: {} }
+
+      for (const language of languages) {
+        const filtered = rows.filter(i => i.language === language).shift()
+        if (!filtered) continue
+        _homePage.title[language] = filtered.title
+        _homePage.subtitle[language] = filtered.subtitle
+        _homePage.description[language] = filtered.description
+      }
+
+      const avatars = await this.queryGetAvatars(client)
+
+      return {
+        languages,
+        ..._homePage,
         avatars
       }
     })

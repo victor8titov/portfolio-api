@@ -32,6 +32,7 @@ router.delete('/auth/logout', validateAuth('logout'), authController.logout)
 router.post('/auth/refresh-token', validateAuth('refreshToken'), authController.refreshToken)
 
 /* goal Homepage */
+router.get('/homepage/multilingual', homepage.readMultilingual)
 router.get('/homepage', validateHomepage('read'), homepage.read)
 router.post('/homepage', auth, validateHomepage('create'), homepage.create)
 router.put('/homepage', auth, validateHomepage('update'), homepage.update)

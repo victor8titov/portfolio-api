@@ -6,6 +6,23 @@ tags:
   - name: homepage
     description: Data for display on the main page
 paths:
+  /homepage/multilingual:
+    get: 
+      tags:
+        - homepage
+      summary: Getting data about home page in all supported languages
+      description: Getting data about home page in all supported languages
+      responses:
+        200:
+          description: Request completed successfully
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomePageMultilingual'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
   /homepage:
     get:
       tags:
@@ -147,6 +164,27 @@ components:
               type: string
               readOnly: true
               example: text description for main page
+        - type: object
+          properties:
+            avatars:
+              type: array
+              items:
+                $ref: '#/components/schemas/AvatarView'
+
+    HomePageMultilingual: 
+      allOf:
+        - type: object
+          properties:
+            languages:
+              type: array
+              items:
+                $ref: 'api-doc.yaml#/components/schemas/Languages'
+            title: 
+              $ref: '#/components/schemas/ObjectWithLanguages'
+            subtitle: 
+              $ref: '#/components/schemas/ObjectWithLanguages'
+            description:
+              $ref: '#/components/schemas/ObjectWithLanguages'
         - type: object
           properties:
             avatars:

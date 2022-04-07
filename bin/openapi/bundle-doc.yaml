@@ -147,6 +147,41 @@ paths:
           $ref: '#/components/responses/422'
         '500':
           $ref: '#/components/responses/5XX'
+  /homepage/multilingual:
+    get:
+      tags:
+        - homepage
+      summary: Getting data about home page in all supported languages
+      description: Getting data about home page in all supported languages
+      responses:
+        '200':
+          description: Request completed successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      languages:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Languages'
+                      title:
+                        $ref: '#/components/schemas/StringWithDivisionIntoLanguages'
+                      subtitle:
+                        $ref: '#/components/schemas/StringWithDivisionIntoLanguages'
+                      description:
+                        $ref: '#/components/schemas/StringWithDivisionIntoLanguages'
+                  - type: object
+                    properties:
+                      avatars:
+                        type: array
+                        items:
+                          $ref: '#/paths/~1homepage/get/responses/200/content/application~1json/schema/allOf/1/properties/avatars/items'
+        '400':
+          $ref: '#/components/responses/4XX'
+        '500':
+          $ref: '#/components/responses/5XX'
   /homepage:
     get:
       tags:
