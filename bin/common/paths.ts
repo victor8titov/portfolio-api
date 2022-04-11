@@ -14,5 +14,6 @@ export function generateBaseImageName (
   width?: string | number | null,
   height?: string | number | null) {
   const id = generateId(10)
-  return `${name}${width ? '-' + width : ''}${height ? 'x' + height : ''}-${templateName}-${id}`
+  const _name = path.parse(name).name.replace(/\s+/g, '-')
+  return `${_name}${width ? '-' + width : ''}${height ? 'x' + height : ''}-${templateName}-${id}`
 }

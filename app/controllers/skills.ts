@@ -1,6 +1,6 @@
 import express, { NextFunction } from 'express'
 import createError from 'http-errors'
-import { ListSkillsResponse, skillModel, SkillView } from '../models/skills'
+import { ListSkillsResponse, skillModel, SkillView, SkillViewMultilingual } from '../models/skills'
 import { Language } from '../models/types'
 
 export async function getSkills (req: express.Request, res: express.Response, next: NextFunction) {
@@ -28,6 +28,22 @@ export async function getSkill (req: express.Request, res: express.Response, nex
     res.status(200).json(skill as SkillView)
   } catch (e) {
     next(createError(500, 'Error is during getting skill'))
+  }
+}
+
+export async function getSkillMultilingual (req: express.Request, res: express.Response, next: NextFunction) {
+  try {
+    const skillId = req.params.skillId
+
+    const skill = await skillModel.getByIdMultilingual(skillId)
+
+    if (!skill) {
+      return next(createError(400, 'Skill with such id does not exists'))
+    }
+
+    res.status(200).json(skill as SkillViewMultilingual)
+  } catch (e) {
+    next(createError(500, 'Error is during getting skill for all languages'))
   }
 }
 

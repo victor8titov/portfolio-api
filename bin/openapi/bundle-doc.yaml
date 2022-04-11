@@ -683,6 +683,39 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/5XX'
+  '/skill/{id}/multilingual':
+    get:
+      tags:
+        - skills
+      description: Get one entities skill by Id with all languages
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc
+      responses:
+        '200':
+          description: Object experience received successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/paths/~1skills/post/requestBody/content/application~1json/schema/allOf/0'
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 10
+                      description:
+                        $ref: '#/components/schemas/StringWithDivisionIntoLanguages'
+        '400':
+          $ref: '#/components/responses/4XX'
+        '500':
+          $ref: '#/components/responses/5XX'
   /time-stamps:
     get:
       tags:

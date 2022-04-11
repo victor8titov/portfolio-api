@@ -17,6 +17,10 @@ export type SkillView = Omit<Required<SkillCreation>, 'description'> & {
   currentLanguage?: Language
 }
 
+export type SkillViewMultilingual = Required<SkillCreation> & {
+  id: string
+}
+
 export type ListSkillsResponse = {
   languages: Language[]
   currentLanguage: Language
@@ -48,6 +52,27 @@ class SkillModel extends Model {
       _skill.description = await this.queryGetDescription(client, skillId, language)
 
       _skill.currentLanguage = language
+
+      return _skill
+    })
+  }
+
+  async getByIdMultilingual (skillId: string): Promise<SkillViewMultilingual | undefined> {
+    return this.connect(async (client) => {
+      const { rows: _skills } = await client.query(`
+        SELECT skill_id as id, name, skill_group as group, level FROM skills
+          WHERE skill_id = $1;
+      `, [skillId])
+
+      const _skill = _skills.shift()
+      if (!_skill) return undefined
+
+      const languages = await languageModel.queryGetAll(client)
+      const _description = await this.queryGetDescriptions(client, skillId)
+      _skill.description = {}
+      for (const language of languages) {
+        _skill.description[language] = _description.find(i => i.language === language)?.description || ''
+      }
 
       return _skill
     })
@@ -138,6 +163,14 @@ class SkillModel extends Model {
         WHERE language = $1 AND skill_id = $2;
       `, [language, skillId])
     return rows[0]?.description || ''
+  }
+
+  async queryGetDescriptions (client: Client, skillId: string): Promise<{ language: Language, description: string }[]> {
+    const { rows } = await client.query(`
+      SELECT content as description, language FROM multilingual_content
+        WHERE skill_id = $1;
+      `, [skillId])
+    return rows || []
   }
 
   async queryUpdateDescription (client: Client, skillId: string, description: ObjectWithLanguage | undefined | null): Promise<void> {

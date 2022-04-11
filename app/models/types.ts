@@ -1,4 +1,4 @@
-import { ImageView } from "./image"
+import { ImageView } from './image'
 
 export type ObjectWithLanguage = {
   [K in Language]: string

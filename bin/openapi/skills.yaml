@@ -146,7 +146,31 @@ paths:
         500:
           $ref: 'api-doc.yaml#/components/responses/5XX'
 
- 
+  /skill/{id}/multilingual:
+    get:
+          tags:
+            - skills
+          description: Get one entities skill by Id with all languages
+          security:
+            - BearerAuth: []
+          parameters:
+            - in: path
+              name: id
+              schema:
+                type: string
+              required: true
+              description: desc 
+          responses:
+            200:
+              description: Object experience received successfully 
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/SkillViewMultilingual'                 
+            400:
+              $ref: 'api-doc.yaml#/components/responses/4XX'
+            500:
+              $ref: 'api-doc.yaml#/components/responses/5XX'
   
 components:
   schemas:
@@ -173,7 +197,6 @@ components:
       required:
         - name
 
-
     SkillCreation:
       allOf:
         - $ref: '#/components/schemas/SkillCommon'
@@ -183,6 +206,17 @@ components:
               $ref: 'api-doc.yaml#/components/schemas/StringWithDivisionIntoLanguages'
 
             
+    SkillViewMultilingual: 
+      allOf:
+        - $ref: '#/components/schemas/SkillCommon'
+        - type: object
+          properties:
+            id:
+              type: string
+              example: 10
+            description:
+              $ref: 'api-doc.yaml#/components/schemas/StringWithDivisionIntoLanguages'
+
     SkillView:
       allOf:
         - $ref: '#/components/schemas/SkillCommon'
@@ -194,5 +228,6 @@ components:
             description:
               type: string
               example: text about this skill 
+            
         
      

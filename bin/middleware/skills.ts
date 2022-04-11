@@ -6,7 +6,7 @@ import { validateLanguage, validateLanguageFromDescription } from './validate-co
 import { validationErrorHandler } from './handler-error'
 import { skillModel } from '../../app/models/skills'
 
-export function validate (method: 'getSkills' | 'getById' | 'create' | 'update' | 'delete'): (ValidationChain | RequestHandler)[] {
+export function validate (method: 'getSkills' | 'getById' | 'getByIdMultilingual' | 'create' | 'update' | 'delete'): (ValidationChain | RequestHandler)[] {
   switch (method) {
     case 'getSkills': {
       return [
@@ -18,6 +18,13 @@ export function validate (method: 'getSkills' | 'getById' | 'create' | 'update' 
       return [
         ...validateId,
         ...validateLanguage,
+        validationErrorHandler,
+        isExistById
+      ]
+    }
+    case 'getByIdMultilingual': {
+      return [
+        ...validateId,
         validationErrorHandler,
         isExistById
       ]

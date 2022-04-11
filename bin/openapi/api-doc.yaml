@@ -35,6 +35,8 @@ paths:
     $ref: 'skills.yaml#/paths/~1skills'
   /skill/{id}:
     $ref: 'skills.yaml#/paths/~1skill~1{id}'
+  /skill/{id}/multilingual:
+    $ref: 'skills.yaml#/paths/~1skill~1{id}~1multilingual'
   /time-stamps:
     $ref: 'time-stamps.yaml#/paths/~1time-stamps'
   /time-stamp/{id}:

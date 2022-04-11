@@ -48,6 +48,7 @@ router.delete('/project/:projectId', auth, validateProjects('delete'), projectCo
 router.get('/skills', validateSkills('getSkills'), skillsControllers.getSkills)
 router.post('/skills', auth, validateSkills('create'), skillsControllers.create)
 router.get('/skill/:skillId', validateSkills('getById'), skillsControllers.getSkill)
+router.get('/skill/:skillId/multilingual', validateSkills('getByIdMultilingual'), skillsControllers.getSkillMultilingual)
 router.put('/skill/:skillId', auth, validateSkills('update'), skillsControllers.update)
 router.delete('/skill/:skillId', auth, validateSkills('delete'), skillsControllers.deleteSkill)
 
