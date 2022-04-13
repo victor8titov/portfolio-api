@@ -6,7 +6,7 @@ import { validateEvents, validateLanguage, validateLanguageFromDescription } fro
 import { validationErrorHandler } from './handler-error'
 import { timeStampModel } from '../../app/models/time-stamps'
 
-export function validate (method: 'getAll' | 'getById' | 'create' | 'update' | 'deleteById'): (ValidationChain | RequestHandler)[] {
+export function validate (method: 'getAll' | 'getById' | 'getByIdMultilingual' | 'create' | 'update' | 'deleteById'): (ValidationChain | RequestHandler)[] {
   switch (method) {
     case 'getAll': {
       return [
@@ -18,6 +18,13 @@ export function validate (method: 'getAll' | 'getById' | 'create' | 'update' | '
       return [
         ...validateId,
         ...validateLanguage,
+        validationErrorHandler,
+        isExistById
+      ]
+    }
+    case 'getByIdMultilingual': {
+      return [
+        ...validateId,
         validationErrorHandler,
         isExistById
       ]

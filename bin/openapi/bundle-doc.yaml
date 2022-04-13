@@ -871,6 +871,41 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/5XX'
+  '/time-stamp/{id}/multilingual':
+    get:
+      tags:
+        - time-stamps
+      description: Get one time stamps on all languages
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: desc
+      responses:
+        '200':
+          description: Successfully received the data on the time stamp with all languages
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/paths/~1time-stamps/post/requestBody/content/application~1json/schema/allOf/0'
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 10
+                  - type: object
+                    properties:
+                      description:
+                        $ref: '#/components/schemas/StringWithDivisionIntoLanguages'
+        '400':
+          $ref: '#/components/responses/4XX'
+        '500':
+          $ref: '#/components/responses/5XX'
   /callback:
     post:
       tags:

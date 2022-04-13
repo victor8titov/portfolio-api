@@ -41,6 +41,8 @@ paths:
     $ref: 'time-stamps.yaml#/paths/~1time-stamps'
   /time-stamp/{id}:
    $ref: 'time-stamps.yaml#/paths/~1time-stamp~1{id}'
+  /time-stamp/{id}/multilingual:
+   $ref: 'time-stamps.yaml#/paths/~1time-stamp~1{id}~1multilingual'
   /callback:
    $ref: 'callback.yaml#/paths/~1callback'
   /social-media:

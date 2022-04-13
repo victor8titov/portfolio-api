@@ -56,6 +56,7 @@ router.delete('/skill/:skillId', auth, validateSkills('delete'), skillsControlle
 router.get('/time-stamps', validateTimeStamps('getAll'), timeStampControllers.getAll)
 router.post('/time-stamps', auth, validateTimeStamps('create'), timeStampControllers.create)
 router.get('/time-stamp/:timeStampId', validateTimeStamps('getById'), timeStampControllers.getById)
+router.get('/time-stamp/:timeStampId/multilingual', validateTimeStamps('getByIdMultilingual'), timeStampControllers.getByIdMultilingual)
 router.put('/time-stamp/:timeStampId', auth, validateTimeStamps('update'), timeStampControllers.update)
 router.delete('/time-stamp/:timeStampId', auth, validateTimeStamps('deleteById'), timeStampControllers.deleteById)
 

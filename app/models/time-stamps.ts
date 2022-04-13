@@ -1,6 +1,8 @@
+import moment from 'moment'
 import { Client } from 'pg'
 import format from 'pg-format'
 import Model from '.'
+import { transformToMultilingualObject } from '../../bin/common/transform-to-multilingual-object'
 import { languageModel } from './language'
 import { EventAndDate, Language, ObjectWithLanguage } from './types'
 
@@ -15,6 +17,10 @@ export type TimeStampView = Omit<Required<TimeStampCreation>, 'description'> & {
   id: string
   description: string
   currentLanguage?: Language
+}
+
+export type TimeStampViewMultilingual = Required<TimeStampCreation> & {
+  id: string
 }
 
 export type ListTimeStamps = {
@@ -56,6 +62,13 @@ class TimeStampModel extends Model {
         })
       }
 
+      // sort list descending i.e. the most recent event will be the first
+      items.sort((a, b) => {
+        const aTime = a.events.find(i => i.status === 'start')?.date
+        const bTime = b.events.find(i => i.status === 'start')?.date
+        return moment(bTime).isBefore(aTime) ? -1 : 1
+      })
+
       const languages = await languageModel.queryGetAll(client)
 
       return {
@@ -85,6 +98,30 @@ class TimeStampModel extends Model {
         description,
         events,
         currentLanguage: language
+      }
+    })
+  }
+
+  async getByIdMultilingual (timeStampId: string): Promise<any | undefined> {
+    return this.connect(async (client) => {
+      const { rows } = await client.query<{id: string, name: string, link: string}>(`
+        SELECT time_stamp_id as id, name, link FROM time_stamps
+          WHERE time_stamp_id = $1;
+      `, [timeStampId])
+
+      const _timeStamp = rows.shift()
+      if (!_timeStamp) return undefined
+
+      const languages = await languageModel.queryGetAll(client)
+      const _description = await this.queryGetDescriptions(client, _timeStamp.id)
+      const description = transformToMultilingualObject(_description, languages, 'description')
+
+      const events = await this.queryEvents(client, _timeStamp.id)
+
+      return {
+        ..._timeStamp,
+        description,
+        events
       }
     })
   }
@@ -190,6 +227,14 @@ class TimeStampModel extends Model {
         WHERE time_stamp_id = $1 AND language = $2;
       `, [timeStampId, language])
     return rows.shift()?.description || ''
+  }
+
+  async queryGetDescriptions (client: Client, timeStampId: string): Promise<{ language: Language, description: string }[]> {
+    const { rows } = await client.query(`
+        SELECT content as description, language FROM multilingual_content 
+        WHERE time_stamp_id = $1;
+      `, [timeStampId])
+    return rows || []
   }
 
   async queryEvents (client: Client, timeStampId: string): Promise<EventAndDate[]> {

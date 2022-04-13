@@ -1,6 +1,7 @@
 import { Client } from 'pg'
 import format from 'pg-format'
 import Model from '.'
+import { transformToMultilingualObject } from '../../bin/common/transform-to-multilingual-object'
 import { languageModel } from './language'
 import { Language, ObjectWithLanguage } from './types'
 
@@ -69,10 +70,7 @@ class SkillModel extends Model {
 
       const languages = await languageModel.queryGetAll(client)
       const _description = await this.queryGetDescriptions(client, skillId)
-      _skill.description = {}
-      for (const language of languages) {
-        _skill.description[language] = _description.find(i => i.language === language)?.description || ''
-      }
+      _skill.description = transformToMultilingualObject(_description, languages, 'description')
 
       return _skill
     })
@@ -197,7 +195,8 @@ class SkillModel extends Model {
   async queryGetGroups (client: Client): Promise<string[]> {
     const { rows } = await client.query(`
       SELECT skill_group as group FROM skills
-        GROUP BY skill_group;
+        GROUP BY skill_group
+        ORDER BY skill_group;
       `)
 
     return rows.map(i => i.group)

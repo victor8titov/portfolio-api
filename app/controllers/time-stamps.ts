@@ -1,6 +1,6 @@
 import express, { NextFunction } from 'express'
 import createError from 'http-errors'
-import { ListTimeStamps, timeStampModel, TimeStampView } from '../models/time-stamps'
+import { ListTimeStamps, timeStampModel, TimeStampView, TimeStampViewMultilingual } from '../models/time-stamps'
 import { Language } from '../models/types'
 
 export async function getAll (req: express.Request, res: express.Response, next: NextFunction) {
@@ -26,6 +26,21 @@ export async function getById (req: express.Request, res: express.Response, next
       next(createError(400, 'Such time stamp is not exist'))
     }
     res.status(200).json(_timeStamp as TimeStampView)
+  } catch (e) {
+    next(createError(500, 'Error'))
+  }
+}
+
+export async function getByIdMultilingual (req: express.Request, res: express.Response, next: NextFunction) {
+  try {
+    const timeStampId = req.params.timeStampId
+
+    const _timeStamp = await timeStampModel.getByIdMultilingual(timeStampId)
+
+    if (!_timeStamp) {
+      next(createError(400, 'Such time stamp is not exist'))
+    }
+    res.status(200).json(_timeStamp as TimeStampViewMultilingual)
   } catch (e) {
     next(createError(500, 'Error'))
   }
