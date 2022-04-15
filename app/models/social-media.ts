@@ -2,12 +2,13 @@ import Model from '.'
 import { imageModel, ImageView } from './image'
 
 export type SocialMediaView = {
+  id: string
   name: string
   link: string
   icon?: ImageView
 }
 
-export type SocialMediaCreation = Omit<SocialMediaView, 'icon'> & {
+export type SocialMediaCreation = Omit<SocialMediaView, 'icon' | 'id'> & {
   imageId: string
 }
 
@@ -56,7 +57,8 @@ class SocialMediaModel extends Model {
 
   async create (socialMedia: SocialMediaCreation): Promise<number> {
     return this.connectWitTransaction(async (client) => {
-      const { name, link, imageId } = socialMedia
+      const { name, link } = socialMedia
+      const imageId = socialMedia.imageId && socialMedia.imageId.length ? socialMedia.imageId : null
 
       const { rows } = await client.query(`
       INSERT INTO links 
@@ -78,7 +80,8 @@ class SocialMediaModel extends Model {
 
   async update (socialMediaId: string, socialMedia: SocialMediaCreation): Promise<void> {
     return this.connect(async (client) => {
-      const { name, link, imageId } = socialMedia
+      const { name, link } = socialMedia
+      const imageId = socialMedia.imageId && socialMedia.imageId.length ? socialMedia.imageId : null
 
       await client.query(`
       UPDATE links SET

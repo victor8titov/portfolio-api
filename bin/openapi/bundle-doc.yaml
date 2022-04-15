@@ -511,6 +511,47 @@ paths:
           $ref: '#/components/responses/4XX'
         '500':
           $ref: '#/components/responses/5XX'
+  '/project/{id}/multilingual':
+    get:
+      tags:
+        - projects
+      description: Get data on one project on all languages
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID for find project
+      responses:
+        '200':
+          description: Successfully received data of project
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/paths/~1projects/post/requestBody/content/application~1json/schema/allOf/0'
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5
+                      description:
+                        $ref: '#/components/schemas/StringWithDivisionIntoLanguages'
+                      images:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/LinkView/properties/icon'
+                      links:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/LinkView'
+        '400':
+          $ref: '#/components/responses/4XX'
+        '500':
+          $ref: '#/components/responses/5XX'
   /skills:
     get:
       tags:

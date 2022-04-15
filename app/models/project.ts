@@ -5,6 +5,7 @@ import { defaultValue } from '../../bin/config/default-settings'
 import { imageModel, ImageView } from './image'
 import { languageModel } from './language'
 import { EventAndDate, Language, LinkCreation, LinkView, ObjectWithLanguage, Options } from './types'
+import { transformToMultilingualObject } from '../../bin/common/transform-to-multilingual-object'
 
 export type ProjectCreation = {
   readonly name: string
@@ -23,6 +24,12 @@ export type ProjectView = Omit<ProjectCreation, 'imagesId' | 'description' | 'li
   readonly images: ImageView[]
   readonly languages?: Language[]
   readonly currentLanguage?: Language
+  readonly links: LinkView[]
+}
+
+export type ProjectViewMultilingual = Required<Omit<ProjectCreation, 'imagesId' | 'links'>> & {
+  readonly id: string
+  readonly images: ImageView[]
   readonly links: LinkView[]
 }
 
@@ -79,6 +86,42 @@ class ProjectModel extends Model {
         id: projectId,
         languages,
         currentLanguage,
+        name,
+        description,
+        type,
+        spendTime,
+        events,
+        stack,
+        links,
+        images
+      }
+    })
+  }
+
+  async getByIdMultilingual (projectId: string): Promise<ProjectViewMultilingual | undefined> {
+    return this.connect(async (client) => {
+      const { rows } = await client.query(`
+      SELECT name, type, stack, spend_time FROM projects 
+        WHERE project_id = $1;
+      `, [projectId])
+
+      const project = rows.shift()
+      if (!project) return undefined
+
+      const { name, type, stack, spend_time: spendTime } = project
+
+      const languages = await languageModel.queryGetAll(client)
+      const _description = await this.queryGetDescriptions(client, projectId)
+      const description = transformToMultilingualObject(_description, languages, 'description')
+
+      const links = await this.queryGetLinks(client, projectId)
+
+      const events = await this.queryGetEvents(client, projectId)
+
+      const images = await this.queryGetImagesByProjectId(client, projectId)
+
+      return {
+        id: projectId,
         name,
         description,
         type,
@@ -276,6 +319,15 @@ class ProjectModel extends Model {
     `, [projectId, language])
 
     return rows.shift()?.description || ''
+  }
+
+  async queryGetDescriptions (client: Client, projectId: string): Promise<{ description: string, language: Language }[]> {
+    const { rows } = await client.query(`
+    SELECT content as description, language from multilingual_content
+      WHERE project_id = $1;  
+    `, [projectId])
+
+    return rows || []
   }
 
   async queryUpdateEvents (client: Client, projectId: string, events: EventAndDate[] | null | undefined): Promise<void> {

@@ -4,7 +4,7 @@ import { defaultValue } from '../../bin/config/default-settings'
 import { projectModel } from '../models/project'
 import { Language } from '../models/types'
 
-export async function getProject (req: express.Request, res: express.Response, next: NextFunction) {
+export async function getById (req: express.Request, res: express.Response, next: NextFunction) {
   try {
     const language = req.query.language
     const projectId = req.params.projectId
@@ -21,7 +21,23 @@ export async function getProject (req: express.Request, res: express.Response, n
   }
 }
 
-export async function getProjects (req: express.Request, res: express.Response, next: NextFunction) {
+export async function getByIdMultilingual (req: express.Request, res: express.Response, next: NextFunction) {
+  try {
+    const projectId = req.params.projectId
+
+    const project = await projectModel.getByIdMultilingual(projectId)
+
+    if (!project) {
+      return next(createError(400, 'Project not found'))
+    }
+
+    res.status(200).json(project)
+  } catch (e) {
+    next(createError(500, 'Error is getting during getting Project'))
+  }
+}
+
+export async function getList (req: express.Request, res: express.Response, next: NextFunction) {
   try {
     const language = req.query.language as Language
     const page = parseInt(req.query.page as string) || defaultValue.page
@@ -75,7 +91,7 @@ export async function update (req: express.Request, res: express.Response, next:
   }
 }
 
-export async function deleteProject (req: express.Request, res: express.Response, next: NextFunction) {
+export async function deleteById (req: express.Request, res: express.Response, next: NextFunction) {
   try {
     const projectId = req.params.projectId
 

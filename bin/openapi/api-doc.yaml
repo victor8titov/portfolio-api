@@ -31,6 +31,8 @@ paths:
     $ref: 'projects.yaml#/paths/~1projects'
   /project/{id}:
     $ref: 'projects.yaml#/paths/~1project~1{id}'
+  /project/{id}/multilingual:
+    $ref: 'projects.yaml#/paths/~1project~1{id}~1multilingual'
   /skills:
     $ref: 'skills.yaml#/paths/~1skills'
   /skill/{id}:

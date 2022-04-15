@@ -38,11 +38,12 @@ router.post('/homepage', auth, validateHomepage('create'), homepage.create)
 router.put('/homepage', auth, validateHomepage('update'), homepage.update)
 
 /* goal Project */
-router.get('/projects', validateProjects('getProjects'), projectControllers.getProjects)
+router.get('/projects', validateProjects('getProjects'), projectControllers.getList)
 router.post('/projects', auth, validateProjects('create'), projectControllers.create)
-router.get('/project/:projectId', validateProjects('getById'), projectControllers.getProject)
+router.get('/project/:projectId', validateProjects('getById'), projectControllers.getById)
+router.get('/project/:projectId/multilingual', validateProjects('getByIdMultilingual'), projectControllers.getByIdMultilingual)
 router.put('/project/:projectId', auth, validateProjects('put'), projectControllers.update)
-router.delete('/project/:projectId', auth, validateProjects('delete'), projectControllers.deleteProject)
+router.delete('/project/:projectId', auth, validateProjects('delete'), projectControllers.deleteById)
 
 /* goal Skills */
 router.get('/skills', validateSkills('getSkills'), skillsControllers.getSkills)

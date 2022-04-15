@@ -8,7 +8,7 @@ import { repeatCheck } from '../common/check-repeat'
 import { validationErrorHandler } from './handler-error'
 import { LinkCreation } from '../../app/models/types'
 
-export function validate (method: 'create' | 'getById' | 'getProjects' | 'put' | 'delete'): (ValidationChain | RequestHandler)[] {
+export function validate (method: 'create' | 'getById' | 'getByIdMultilingual' | 'getProjects' | 'put' | 'delete'): (ValidationChain | RequestHandler)[] {
   switch (method) {
     case 'create': {
       return [
@@ -24,6 +24,12 @@ export function validate (method: 'create' | 'getById' | 'getProjects' | 'put' |
       return [
         ...validateId,
         ...validateLanguage,
+        validationErrorHandler
+      ]
+    }
+    case 'getByIdMultilingual': {
+      return [
+        ...validateId,
         validationErrorHandler
       ]
     }

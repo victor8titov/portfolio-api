@@ -150,6 +150,31 @@ paths:
           $ref: 'api-doc.yaml#/components/responses/4XX'
         500:
           $ref: 'api-doc.yaml#/components/responses/5XX'
+  /project/{id}/multilingual:
+    get:
+      tags:
+        - projects
+      description: Get data on one project on all languages
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: ID for find project
+      responses:
+        200: 
+          description: Successfully received data of project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectViewMultilingual'
+        400:
+          $ref: 'api-doc.yaml#/components/responses/4XX'
+        500:
+          $ref: 'api-doc.yaml#/components/responses/5XX'
 
 components:
   schemas:
@@ -199,7 +224,6 @@ components:
               type: array
               items: 
                 $ref: 'api-doc.yaml#/components/schemas/LinkCreation'
-          
   
     ProjectView:
       allOf:
@@ -220,4 +244,22 @@ components:
               items: 
                 $ref: 'api-doc.yaml#/components/schemas/LinkView'
         - $ref: '#/components/schemas/ProjectCommon'
-        
+      
+    ProjectViewMultilingual:
+      allOf:
+        - $ref: '#/components/schemas/ProjectCommon'
+        - type: object
+          properties:
+            id:
+              type: string
+              example: 5
+            description:
+              $ref: 'api-doc.yaml#/components/schemas/StringWithDivisionIntoLanguages'
+            images:
+              type: array
+              items:
+                $ref: 'image.yaml#/components/schemas/Image'
+            links: 
+              type: array
+              items: 
+                $ref: 'api-doc.yaml#/components/schemas/LinkView'
