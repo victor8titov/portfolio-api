@@ -17,11 +17,11 @@ const swaggerDocument = YAML.load(path.resolve(__dirname, './bin/openapi/bundle-
 
 const app = express()
 
-const corsOptions = {
-  origin: process.env.ORIGIN
-}
+// const corsOptions = {
+//   origin: process.env.ORIGIN
+// }
 
-app.use(cors(corsOptions))
+app.use(cors())
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))

@@ -178,7 +178,7 @@ class HomePageModel extends Model {
   async queryUpdateAvatars (client: Client, avatars: AvatarCreation[] | null | undefined): Promise<void> {
     await client.query('DELETE FROM avatars;')
 
-    if (avatars) {
+    if (avatars && avatars.length) {
       const _values = avatars.map(i => [i.imageId, i.type])
       const _query = format(`
         INSERT INTO avatars 

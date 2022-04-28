@@ -136,7 +136,7 @@ DROP TABLE IF EXISTS links CASCADE;
 
 CREATE TABLE links (
   link_id serial NOT NULL,
-  name VARCHAR(30) NOT NULL,
+  name VARCHAR(100) NOT NULL,
   link VARCHAR(100) NOT NULL,
   social_media BOOLEAN DEFAULT NULL,
   project_id INT DEFAULT NULL,

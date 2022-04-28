@@ -48,7 +48,6 @@ export async function update (req: express.Request, res: express.Response, next:
     const { title, description, subtitle, avatars } = req.body
 
     await homePageModel.update({ title, description, subtitle, avatars })
-
     res.status(200).json({ message: 'The main page has updated successfully.' })
   } catch (e) {
     next(createError(500, 'Error processing data for the home page.'))

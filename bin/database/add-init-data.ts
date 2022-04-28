@@ -6,6 +6,7 @@ const db = new Pool()
 
 async function insertLanguages () {
   try {
+    await db.query('DELETE FROM languages;')
     await db.query(`
       INSERT INTO languages (language)
       VALUES
@@ -26,6 +27,7 @@ async function createSuperUser () {
     const user = process.env.USER_ADMIN
 
     if (!user) return
+    await db.query('DELETE FROM users;')
     await db.query(`
         INSERT INTO users (name, email, password, salt)
         VALUES ('${user}', 'victor8titov@gmail.com', '${hash}', '${salt}');
@@ -38,6 +40,7 @@ async function createSuperUser () {
 
 async function createTemplatesForImages () {
   try {
+    await db.query('DELETE FROM templates_image;')
     await db.query(`
       INSERT INTO templates_image (name, width, height)
         VALUES 
@@ -51,10 +54,27 @@ async function createTemplatesForImages () {
   }
 }
 
+async function createHomePageDefault () {
+  try {
+    await db.query('DELETE FROM homepage;')
+    await db.query(`
+      INSERT INTO homepage (language, title, subtitle, description)
+        VALUES 
+          ('en', 'title default', 'subtitle default', 'description default'),
+          ('ru', 'title default', 'subtitle default', 'description default');
+    `)
+
+    console.log('added templates_image table successful')
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 (async function () {
   await createSuperUser()
   await insertLanguages()
   await createTemplatesForImages()
+  await createHomePageDefault()
   await db.end()
 
   console.log('finished')
