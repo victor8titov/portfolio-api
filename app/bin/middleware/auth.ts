@@ -2,9 +2,9 @@ import express, { NextFunction, Request, Response, RequestHandler } from 'expres
 import passport from 'passport'
 import createError from 'http-errors'
 import { body, ValidationChain, query } from 'express-validator'
-import { getUserByName, User } from '../../app/models/user'
+import { getUserByName, User } from '../../models/user'
 import { validationErrorHandler } from './handler-error'
-import { TypeErrors } from '../../app/models/types'
+import { TypeErrors } from '../../models/types'
 import jwt from 'jsonwebtoken'
 
 export function auth (req: Request, res: Response, next: NextFunction) {

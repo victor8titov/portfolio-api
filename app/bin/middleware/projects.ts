@@ -2,11 +2,11 @@ import express, { NextFunction, RequestHandler } from 'express'
 import escape from 'validator/lib/escape'
 import { body, ValidationChain, query, param } from 'express-validator'
 import createError from 'http-errors'
-import { projectModel } from '../../app/models/project'
+import { projectModel } from '../../models/project'
 import { checkImageIdsInDB, validateEvents, validateLanguage, validateLanguageFromDescription, validatePagination } from './validate-common'
 import { repeatCheck } from '../common/check-repeat'
 import { validationErrorHandler } from './handler-error'
-import { LinkCreation } from '../../app/models/types'
+import { LinkCreation } from '../../models/types'
 
 export function validate (method: 'create' | 'getById' | 'getByIdMultilingual' | 'getProjects' | 'put' | 'delete'): (ValidationChain | RequestHandler)[] {
   switch (method) {

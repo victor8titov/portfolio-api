@@ -2,7 +2,7 @@ import { NextFunction, Response } from 'express'
 import createError from 'http-errors'
 import sharp from 'sharp'
 import { ImageByTemplateCreation, TemplateImage, imageModel } from '../models/image'
-import { generateBaseImageName, pathForImages } from '../../bin/common/paths'
+import { generateBaseImageName, pathForImages } from '../bin/common/paths'
 
 // TODO repair types req: any.
 export async function uploadImage (req: any, res: Response, next: NextFunction) {

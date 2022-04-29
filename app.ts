@@ -8,12 +8,12 @@ import { routersForApi } from './app/routes/api'
 import swaggerUi from 'swagger-ui-express'
 import YAML from 'yamljs'
 import passport from 'passport'
-import './bin/config/passport-jwt-strategy'
+import './app/bin/config/passport-jwt-strategy'
 import { routersForStatic } from './app/routes/static'
-import { errorHandler } from './bin/middleware/handler-error'
+import { errorHandler } from './app/bin/middleware/handler-error'
 import cors from 'cors'
 
-const swaggerDocument = YAML.load(path.resolve(__dirname, './bin/openapi/bundle-doc.yaml'))
+const swaggerDocument = YAML.load(path.resolve(__dirname, './app/bin/openapi/bundle-doc.yaml'))
 
 const app = express()
 

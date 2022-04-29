@@ -3,7 +3,7 @@ import escape from 'validator/lib/escape'
 import { body, ValidationChain } from 'express-validator'
 import { checkImageIdsInDB, validateLanguage } from './validate-common'
 import { repeatCheck } from '../common/check-repeat'
-import { AvatarCreation } from '../../app/models/homepage'
+import { AvatarCreation } from '../../models/homepage'
 import createError from 'http-errors'
 import { validationErrorHandler } from './handler-error'
 

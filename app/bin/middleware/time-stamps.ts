@@ -2,13 +2,13 @@ import express, { NextFunction, RequestHandler } from 'express'
 import escape from 'validator/lib/escape'
 import { body, ValidationChain, param } from 'express-validator'
 import createError from 'http-errors'
-import { validateLanguage, validateLanguageFromDescription } from './validate-common'
+import { validateEvents, validateLanguage, validateLanguageFromDescription } from './validate-common'
 import { validationErrorHandler } from './handler-error'
-import { skillModel } from '../../app/models/skills'
+import { timeStampModel } from '../../models/time-stamps'
 
-export function validate (method: 'getSkills' | 'getById' | 'getByIdMultilingual' | 'create' | 'update' | 'delete'): (ValidationChain | RequestHandler)[] {
+export function validate (method: 'getAll' | 'getById' | 'getByIdMultilingual' | 'create' | 'update' | 'deleteById'): (ValidationChain | RequestHandler)[] {
   switch (method) {
-    case 'getSkills': {
+    case 'getAll': {
       return [
         ...validateLanguage,
         validationErrorHandler
@@ -33,8 +33,7 @@ export function validate (method: 'getSkills' | 'getById' | 'getByIdMultilingual
       return [
         ...validateBody,
         validationErrorHandler,
-        validateLanguageFromDescription,
-        validateName
+        validateLanguageFromDescription
       ]
     }
     case 'update': {
@@ -43,11 +42,10 @@ export function validate (method: 'getSkills' | 'getById' | 'getByIdMultilingual
         ...validateBody,
         validationErrorHandler,
         isExistById,
-        validateName,
         validateLanguageFromDescription
       ]
     }
-    case 'delete': {
+    case 'deleteById': {
       return [
         ...validateId,
         validationErrorHandler,
@@ -61,9 +59,18 @@ export function validate (method: 'getSkills' | 'getById' | 'getByIdMultilingual
 }
 
 const validateBody = [
-  body('name').trim().escape().isLength({ max: 100 }),
-  body('group', 'Field group is longer than 30 character').optional().trim().isLength({ max: 30 }),
-  body('level').optional().isInt().default(0).custom(value => value >= 0 && value <= 10),
+  body('name').notEmpty().trim().escape().isLength({ max: 100 }),
+  body('link').optional().trim().isString(),
+  body('events', 'Event is required').notEmpty(),
+  ...validateEvents,
+  body('events', 'Missing statuses start and end')
+    .custom(value => {
+      const _statuses = value.map((i: any) => i.status)
+
+      if (!_statuses.some((i: string) => i === 'start')) return false
+      if (!_statuses.some((i: string) => i === 'end')) return false
+      return true
+    }),
   body('description').optional().customSanitizer(value => typeof value === 'string' ? { en: value } : value),
   body('description', 'Field description is not valid').optional().custom(value => {
     if (typeof value !== 'object') return false
@@ -75,40 +82,22 @@ const validateBody = [
 ]
 
 const validateId = [
-  param('skillId', 'Param skillId is wrong').notEmpty().isInt()
+  param('timeStampId', 'Param timeStampId is wrong').notEmpty().isInt()
 ]
-
-async function validateName (req: express.Request, res: express.Response, next: NextFunction) {
-  try {
-    const skillId: string | number = req.params.skillId || ''
-    const _nameFromDB = await skillModel.getSkillName()
-
-    const _checkName = _nameFromDB.some(
-      item => item.name === req.body.name && item.id?.toString() !== skillId?.toString())
-
-    if (_checkName) {
-      return next(createError(400, 'Skill with such name is exist.', { source: 'name' }))
-    }
-
-    next()
-  } catch (e) {
-    next(createError(500, 'Error is during validate Name'))
-  }
-}
 
 async function isExistById (req: express.Request, res: express.Response, next: NextFunction) {
   try {
-    const skillId: string | number = req.params.skillId
-    const idFromDB = await skillModel.getSkillName()
+    const timeStampId = req.params.timeStampId?.toString()
+    const _timeStampListId = await timeStampModel.getNamesAndId()
 
-    const isExist = idFromDB.some(item => item.id?.toString() === skillId.toString())
+    const isExist = _timeStampListId.some(item => item.id?.toString() === timeStampId)
 
     if (!isExist) {
-      return next(createError(400, 'Skill with such Id does not found', { source: 'skillId' }))
+      return next(createError(400, 'Time stamp with such Id does not found', { source: 'timeStampId' }))
     }
 
     next()
   } catch (e) {
-    next(createError(500, "Error is during searching skill's id"))
+    next(createError(500, "Error is during searching time stamp's id"))
   }
 }

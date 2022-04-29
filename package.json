@@ -4,7 +4,7 @@
   "description": "portfolio back end",
   "private": true,
   "scripts": {
-    "start": "nodemon ./bin/www.ts",
+    "start": "nodemon ./app/bin/www.ts",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --ext .ts --fix",
     "build": "tsc",

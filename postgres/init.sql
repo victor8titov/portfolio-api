@@ -1,3 +1,5 @@
+--- CREATE DATABASE portfolio;
+GRANT ALL PRIVILEGES ON DATABASE portfolio TO portfolio;
 
 --- create teable languages ---
 DROP TABLE IF EXISTS languages CASCADE;

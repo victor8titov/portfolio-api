@@ -1,7 +1,7 @@
 import { Client } from 'pg'
 import format from 'pg-format'
 import Model from '.'
-import { getUrlImage } from '../../bin/common/paths'
+import { getUrlImage } from '../bin/common/paths'
 import { Options, Pagination } from './types'
 
 export type TemplateImage = {

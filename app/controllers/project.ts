@@ -1,6 +1,6 @@
 import express, { NextFunction } from 'express'
 import createError from 'http-errors'
-import { defaultValue } from '../../bin/config/default-settings'
+import { defaultValue } from '../bin/config/default-settings'
 import { projectModel } from '../models/project'
 import { Language } from '../models/types'
 

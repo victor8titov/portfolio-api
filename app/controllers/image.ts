@@ -3,7 +3,7 @@ import fs from 'fs'
 import createError from 'http-errors'
 import { imageModel, ImageView, ListImages } from '../models/image'
 import path from 'path'
-import { pathForImages } from '../../bin/common/paths'
+import { pathForImages } from '../bin/common/paths'
 
 export async function getById (req: Request, res: Response, next: NextFunction) {
   try {

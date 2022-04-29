@@ -2,7 +2,7 @@ import moment from 'moment'
 import { Client } from 'pg'
 import format from 'pg-format'
 import Model from '.'
-import { transformToMultilingualObject } from '../../bin/common/transform-to-multilingual-object'
+import { transformToMultilingualObject } from '../bin/common/transform-to-multilingual-object'
 import { languageModel } from './language'
 import { EventAndDate, Language, ObjectWithLanguage } from './types'
 

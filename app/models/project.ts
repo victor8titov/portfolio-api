@@ -1,11 +1,11 @@
 import { Client } from 'pg'
 import format from 'pg-format'
 import Model from '.'
-import { defaultValue } from '../../bin/config/default-settings'
+import { defaultValue } from '../bin/config/default-settings'
 import { imageModel, ImageView } from './image'
 import { languageModel } from './language'
 import { EventAndDate, Language, LinkCreation, LinkView, ObjectWithLanguage, Options } from './types'
-import { transformToMultilingualObject } from '../../bin/common/transform-to-multilingual-object'
+import { transformToMultilingualObject } from '../bin/common/transform-to-multilingual-object'
 
 export type ProjectCreation = {
   readonly name: string

@@ -1,0 +1,23 @@
+version: "3.8"
+services:
+
+  portfolio_postgres:
+    restart: always
+    image: postgres_image
+    container_name: postgres_container
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile.postgres
+    environment:
+      - POSTGRES_PASSWORD=${PGPASSWORD}
+      - POSTGRES_USER=${PGUSER}
+    expose:
+      - "${PGPORT}"
+    volumes:
+      - portfolio_postgres_volume:/var/lib/postgresql/data
+
+volumes:
+  portfolio_postgres_volume:
+
+networks:
+  portfolio:

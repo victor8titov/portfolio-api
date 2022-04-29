@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express'
 import createError from 'http-errors'
-import { errorHandler } from '../../bin/middleware/handler-error'
+import { errorHandler } from '../bin/middleware/handler-error'
 import { getImage } from '../controllers/static'
 
 const router = express.Router()

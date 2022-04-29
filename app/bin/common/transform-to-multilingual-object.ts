@@ -1,4 +1,4 @@
-import { Language, ObjectWithLanguage } from '../../app/models/types'
+import { Language, ObjectWithLanguage } from '../../models/types'
 
 type InputObject = {
   [key: string]: string,

@@ -1,8 +1,8 @@
 import express, { NextFunction, RequestHandler } from 'express'
 import { body, ValidationChain, param } from 'express-validator'
 import createError from 'http-errors'
-import { imageModel } from '../../app/models/image'
-import { socialMediaModel } from '../../app/models/social-media'
+import { imageModel } from '../../models/image'
+import { socialMediaModel } from '../../models/social-media'
 import { validationErrorHandler } from './handler-error'
 
 export function validate (method: 'create' | 'update' | 'delete'): (ValidationChain | RequestHandler)[] {

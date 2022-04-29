@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { param } from 'express-validator'
-import { imageModel } from '../../app/models/image'
+import { imageModel } from '../../models/image'
 import { validationErrorHandler } from './handler-error'
 import createError from 'http-errors'
 import { validatePagination } from './validate-common'

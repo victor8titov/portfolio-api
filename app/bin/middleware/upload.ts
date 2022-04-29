@@ -1,10 +1,10 @@
 import { NextFunction } from 'express'
-import { body, ValidationChain, param } from 'express-validator'
+import { body } from 'express-validator'
 import multer from 'multer'
 import createError from 'http-errors'
 import path from 'path'
 import { regExpCheckImages, supportedExtensionImages } from '../common/extensions-image'
-import { TypeErrors } from '../../app/models/types'
+import { TypeErrors } from '../../models/types'
 import { validationErrorHandler } from './handler-error'
 
 export const validateUpload = [
