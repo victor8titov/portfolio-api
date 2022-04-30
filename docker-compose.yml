@@ -1,5 +1,39 @@
-version: "3.8"
+version: "3.7"
+
 services:
+
+  nginx-api:
+    restart: always
+    image: nginx_api_image
+    container_name: nginx_api_container
+    build:
+      context: ./nginx
+      args:
+        PORTFOLIO_API_SERVICE: portfolio_api
+    expose:
+      - "80"
+    networks:
+      - portfolio_network
+    depends_on:
+      - portfolio_api
+
+  portfolio_api:
+    restart: always
+    image: portfolio_api_image
+    container_name: portfolio_api_container
+    build:
+      context: .
+    env_file:
+      - .env
+    expose:
+      - "8000"
+    depends_on:
+      - portfolio_postgres
+    networks:
+      - portfolio_network
+    volumes:
+      - portfolio_static_files_volume:/public
+
 
   portfolio_postgres:
     restart: always
@@ -13,11 +47,16 @@ services:
       - POSTGRES_USER=${PGUSER}
     expose:
       - "${PGPORT}"
+    networks:
+      - portfolio_network
     volumes:
       - portfolio_postgres_volume:/var/lib/postgresql/data
 
 volumes:
   portfolio_postgres_volume:
+  portfolio_static_files_volume:
 
 networks:
-  portfolio:
+  portfolio_network:
+    external: true
+
