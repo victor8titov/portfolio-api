@@ -2,10 +2,10 @@ version: "3.7"
 
 services:
 
-  nginx-api:
+  nginx_rest_api:
     restart: always
-    image: nginx_api_image
-    container_name: nginx_api_container
+    image: nginx_rest_api_image
+    container_name: nginx_rest_api_container
     build:
       context: ./nginx
       args:
@@ -32,13 +32,13 @@ services:
     networks:
       - portfolio_network
     volumes:
-      - portfolio_static_files_volume:/public
+      - portfolio_images_volume:/app/public/images
 
 
   portfolio_postgres:
     restart: always
-    image: postgres_image
-    container_name: postgres_container
+    image: portfolio_postgres_image
+    container_name: portfolio_postgres_container
     build:
       context: ./postgres
       dockerfile: Dockerfile.postgres
@@ -54,7 +54,7 @@ services:
 
 volumes:
   portfolio_postgres_volume:
-  portfolio_static_files_volume:
+  portfolio_images_volume:
 
 networks:
   portfolio_network:

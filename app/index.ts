@@ -4,16 +4,16 @@ import express from 'express'
 import path from 'path'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
-import { routersForApi } from './app/routes/api'
+import { routersForApi } from './routes/api'
 import swaggerUi from 'swagger-ui-express'
 import YAML from 'yamljs'
 import passport from 'passport'
-import './app/bin/config/passport-jwt-strategy'
-import { routersForStatic } from './app/routes/static'
-import { errorHandler } from './app/bin/middleware/handler-error'
+import './bin/config/passport-jwt-strategy'
+import { routersForStatic } from './routes/static'
+import { errorHandler } from './bin/middleware/handler-error'
 import cors from 'cors'
 
-const swaggerDocument = YAML.load(path.resolve(__dirname, './app/bin/openapi/bundle-doc.yaml'))
+const swaggerDocument = YAML.load(path.resolve(__dirname, './bin/openapi/bundle-doc.yaml'))
 
 const app = express()
 
