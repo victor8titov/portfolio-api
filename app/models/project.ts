@@ -6,6 +6,7 @@ import { imageModel, ImageView } from './image'
 import { languageModel } from './language'
 import { EventAndDate, Language, LinkCreation, LinkView, ObjectWithLanguage, Options } from './types'
 import { transformToMultilingualObject } from '../bin/common/transform-to-multilingual-object'
+import moment from 'moment'
 
 export type ProjectCreation = {
   readonly name: string
@@ -138,6 +139,8 @@ class ProjectModel extends Model {
     return this.connect(async (client) => {
       const { page = defaultValue.page, pageSize = defaultValue.pageSize, language = Language.EN, sort } = option
 
+      // TODO the sort don't work properly
+      // need to finish sort with field and event date
       const order: string = sort?.map(item => {
         const direction = item.slice(0, 1) === '-' ? 'DESC' : 'ASC'
         return `${item.slice(1)} ${direction}`
@@ -176,6 +179,13 @@ class ProjectModel extends Model {
           images
         })
       }
+
+      // sort list descending i.e. the most recent event will be the first
+      items.sort((a, b) => {
+        const aTime = a.events[0]?.date
+        const bTime = b.events[0]?.date
+        return moment(bTime).isBefore(aTime) ? -1 : 1
+      })
 
       const languages = await languageModel.queryGetAll(client)
 

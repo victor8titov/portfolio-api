@@ -70,6 +70,7 @@ export function validate (method: 'create' | 'getById' | 'getByIdMultilingual' |
 const validateBody = [
   body('name').trim().escape().notEmpty().isLength({ max: 100 }),
   body('type').optional().trim().isLength({ max: 30 }),
+  body('events', 'Event is required').notEmpty(),
   body('spendTime').optional().trim().isLength({ max: 100 }),
   body('description').optional().customSanitizer(value => typeof value === 'string' ? { en: value } : value),
   body('description', 'Field description is not valid').optional().custom(value => {
